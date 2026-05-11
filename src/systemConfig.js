@@ -3,7 +3,8 @@
 const SYSTEMS = {
   'mini-post': {
     displayName: 'Mini Post',
-    templateFile: 'MP_PS1_Template.pdf',
+    templateFile: 'MP_PS1_2026.pdf',
+    gateTemplateFile: 'MP_Gate_PS1_Template.pdf',
     heights: {
       pool:    { height: '1.26', heightAboveFix: '1.05' },
       default: { height: '1.08', heightAboveFix: '0.85' }
@@ -11,7 +12,7 @@ const SYSTEMS = {
   },
   'double-disc': {
     displayName: 'Double Disc',
-    templateFile: 'DD_PS1_template.pdf',
+    templateFile: 'DD_PS1_2026.pdf',
     heights: {
       pool:    { height: '1.30', heightAboveFix: '1.25' },
       default: { height: '1.13', heightAboveFix: '1.05' }
