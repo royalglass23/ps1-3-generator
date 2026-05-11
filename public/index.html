@@ -1,0 +1,317 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Royal Glass — PS1 Generator</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: system-ui, sans-serif; background: #f4f4f5; color: #18181b; min-height: 100vh; }
+
+    #password-gate {
+      display: flex; align-items: center; justify-content: center; min-height: 100vh;
+    }
+    #password-box {
+      background: #fff; border: 1px solid #e4e4e7; border-radius: 8px;
+      padding: 2rem; width: 320px; display: flex; flex-direction: column; gap: 1rem;
+    }
+    #password-box h2 { font-size: 1.2rem; }
+    #password-box input { padding: .5rem; border: 1px solid #d4d4d8; border-radius: 4px; width: 100%; }
+    #password-error { color: #dc2626; font-size: .85rem; display: none; }
+
+    #app { display: none; max-width: 700px; margin: 0 auto; padding: 2rem 1rem 4rem; }
+    h1 { font-size: 1.5rem; margin-bottom: 1.5rem; }
+
+    .card { background: #fff; border: 1px solid #e4e4e7; border-radius: 8px; padding: 1.5rem; margin-bottom: 1.5rem; }
+    .card h2 { font-size: 1rem; font-weight: 600; margin-bottom: 1rem; color: #3f3f46; text-transform: uppercase; letter-spacing: .05em; }
+
+    .field { display: flex; flex-direction: column; gap: .3rem; margin-bottom: 1rem; }
+    .field:last-child { margin-bottom: 0; }
+    label { font-size: .875rem; font-weight: 500; }
+    input[type="text"], select {
+      padding: .45rem .6rem; border: 1px solid #d4d4d8; border-radius: 4px;
+      font-size: .95rem; width: 100%; background: #fafafa;
+    }
+    input[type="text"]:focus, select:focus { outline: 2px solid #2563eb; border-color: transparent; background: #fff; }
+
+    .radio-group { display: flex; gap: 1.5rem; }
+    .radio-group label { display: flex; align-items: center; gap: .4rem; font-weight: 400; cursor: pointer; }
+
+    .btn-row { display: flex; gap: .75rem; flex-wrap: wrap; margin-top: .5rem; }
+    button {
+      padding: .55rem 1.2rem; border: none; border-radius: 4px; font-size: .95rem;
+      cursor: pointer; font-weight: 500; transition: opacity .15s;
+    }
+    button:disabled { opacity: .5; cursor: not-allowed; }
+    .btn-primary { background: #2563eb; color: #fff; }
+    .btn-primary:hover:not(:disabled) { background: #1d4ed8; }
+    .btn-secondary { background: #059669; color: #fff; }
+    .btn-secondary:hover:not(:disabled) { background: #047857; }
+    .btn-both { background: #7c3aed; color: #fff; }
+    .btn-both:hover:not(:disabled) { background: #6d28d9; }
+
+    #status { margin-top: .75rem; font-size: .875rem; min-height: 1.2em; }
+    #status.error { color: #dc2626; }
+    #status.ok { color: #059669; }
+
+    table { width: 100%; border-collapse: collapse; font-size: .85rem; }
+    th, td { text-align: left; padding: .45rem .6rem; border-bottom: 1px solid #e4e4e7; }
+    th { background: #f4f4f5; font-weight: 600; }
+    tr:last-child td { border-bottom: none; }
+    .tag { display: inline-block; padding: .1rem .4rem; border-radius: 3px; font-size: .75rem; font-weight: 600; }
+    .tag-yes { background: #dcfce7; color: #166534; }
+    .tag-no  { background: #f4f4f5; color: #71717a; }
+  </style>
+</head>
+<body>
+
+<!-- Password gate -->
+<div id="password-gate">
+  <div id="password-box">
+    <h2>Royal Glass — PS1 and PS3 Generator</h2>
+    <p style="font-size:.875rem;color:#71717a;">Enter the access password to continue.</p>
+    <input type="password" id="pwd-input" placeholder="Password" />
+    <p id="password-error">Incorrect password. Try again.</p>
+    <button class="btn-primary" onclick="submitPassword()">Sign In</button>
+  </div>
+</div>
+
+<!-- Main app -->
+<div id="app">
+  <h1>PS1 and PS3 Generator</h1>
+
+  <div class="card">
+    <h2>Project Details</h2>
+    <div class="field">
+      <label for="clientName">Client / Designer Name</label>
+      <input type="text" id="clientName" placeholder="e.g. Michael and Penelope" />
+    </div>
+    <div class="field">
+      <label for="address">Property Address</label>
+      <input type="text" id="address" placeholder="e.g. 65 Alberton Avenue Mount Albert, Auckland 1025" />
+    </div>
+    <div class="field">
+      <label for="bcNumber">BC Number <span style="color:#71717a;font-weight:400;">(optional)</span></label>
+      <input type="text" id="bcNumber" placeholder="e.g. BCO10363615" />
+    </div>
+    <div class="field">
+      <label for="lotDescription">Lot Description</label>
+      <input type="text" id="lotDescription"/>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>System & Installation</h2>
+    
+    <div class="field">
+      <label for="system">System</label>
+      <select id="system">
+        <option value="mini-post">Mini Post</option>
+        <option value="double-disc">Double Disc</option>
+        <option value="side-channel">Edgetec Infinity Side Channel</option>
+      </select>
+    </div>
+    <div class="field">
+      <label for="substrate">Structure Material</label>
+      <select id="substrate">
+        <option value="Timber">Timber</option>
+        <option value="Concrete">Concrete</option>
+        <option value="Steel">Steel</option>
+      </select>
+    </div>
+    <div class="field">
+      <label for="structure">Structure Type</label>
+      <select id="structure">
+        <option value="Deck">Deck</option>
+        <option value="Balcony">Balcony</option>
+        <option value="Pool Area">Pool Area</option>
+        <option value="Stair Area">Stair Area</option>
+        <option value="Landing">Landing</option>
+        <option value="Stair and Balcony Area">Stair and Balcony Area</option>
+      </select>
+    </div>
+    <div class="field">
+      <label>Location</label>
+      <div class="radio-group">
+        <label><input type="radio" name="location" value="Internal" /> Internal</label>
+        <label><input type="radio" name="location" value="External" checked /> External</label>
+      </div>
+    </div>
+    <div class="field">
+      <label>Structure Built</label>
+      <div class="radio-group">
+        <label><input type="radio" name="newOrExisting" value="New" checked /> New</label>
+        <label><input type="radio" name="newOrExisting" value="Existing" /> Existing</label>
+      </div>
+    </div>
+    <div class="field">
+      <label for="thickness">Glass Thickness</label>
+      <select id="thickness">
+        <option value="12" selected>12mm</option>
+        <option value="15">15mm</option>
+      </select>
+    </div>
+  </div>
+
+  <div class="btn-row">
+    <button class="btn-primary" onclick="generate('ps1')">Generate PS1</button>
+    <button class="btn-secondary" onclick="generate('ps3')">Generate PS3</button>
+    <button class="btn-both" onclick="generate('both')">Generate PS1 and PS3</button>
+  </div>
+  <div id="status"></div>
+
+  <div class="card" style="margin-top:2rem;">
+    <h2>Recent Records</h2>
+    <div id="records-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Date</th><th>Client</th><th>Address</th><th>System</th><th>Structure</th><th>PS3</th>
+          </tr>
+        </thead>
+        <tbody id="records-body">
+          <tr><td colspan="6" style="color:#71717a;">Loading…</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<script>
+  // Auth
+  async function submitPassword() {
+    const pwd = document.getElementById('pwd-input').value;
+    const res = await fetch('/api/auth', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ password: pwd })
+    });
+    if (res.ok) {
+      document.getElementById('password-gate').style.display = 'none';
+      document.getElementById('app').style.display = 'block';
+      loadRecords();
+    } else {
+      document.getElementById('password-error').style.display = 'block';
+    }
+  }
+
+  document.getElementById('pwd-input').addEventListener('keydown', e => {
+    if (e.key === 'Enter') submitPassword();
+  });
+
+  // Check if already authed
+  (async () => {
+    const res = await fetch('/api/records');
+    if (res.ok) {
+      document.getElementById('password-gate').style.display = 'none';
+      document.getElementById('app').style.display = 'block';
+      loadRecords();
+    }
+  })();
+
+  // Generate
+  function formData() {
+    return {
+      clientName:       document.getElementById('clientName').value.trim(),
+      address:          document.getElementById('address').value.trim(),
+      bcNumber:         document.getElementById('bcNumber').value.trim(),
+      lotDescription:   document.getElementById('lotDescription').value.trim(),
+      thickness:        document.getElementById('thickness').value,
+      system:           document.getElementById('system').value,
+      substrate:        document.getElementById('substrate').value,
+      structure:        document.getElementById('structure').value,
+      location:         document.querySelector('input[name="location"]:checked').value,
+      newOrExisting:    document.querySelector('input[name="newOrExisting"]:checked').value
+    };
+  }
+
+  async function fetchBlob(type, extra = {}) {
+    const res = await fetch('/api/generate', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ ...formData(), type, ...extra })
+    });
+    if (!res.ok) {
+      const err = await res.json();
+      throw new Error(err.error || 'Server error');
+    }
+    const blob = await res.blob();
+    const cd = res.headers.get('Content-Disposition') || '';
+    const match = cd.match(/filename="([^"]+)"/);
+    return { blob, filename: match ? match[1] : `${type.toUpperCase()}.pdf` };
+  }
+
+  function triggerDownload({ blob, filename }) {
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    setTimeout(() => URL.revokeObjectURL(url), 2000);
+  }
+
+  async function generate(mode) {
+    const status = document.getElementById('status');
+    const btns = document.querySelectorAll('button');
+    btns.forEach(b => b.disabled = true);
+    status.className = '';
+    status.textContent = 'Generating…';
+
+    try {
+      if (mode === 'both') {
+        const [ps3, ps1] = await Promise.all([fetchBlob('ps3'), fetchBlob('ps1', { markPS3: true })]);
+        triggerDownload(ps3);
+        triggerDownload(ps1);
+      } else {
+        triggerDownload(await fetchBlob(mode));
+      }
+
+      status.className = 'ok';
+      status.textContent = mode === 'both' ? '2 PDFs downloaded.' : 'PDF downloaded.';
+      loadRecords();
+    } catch (err) {
+      status.className = 'error';
+      status.textContent = err.message;
+    } finally {
+      btns.forEach(b => b.disabled = false);
+    }
+  }
+
+  // Records table
+  async function loadRecords() {
+    const tbody = document.getElementById('records-body');
+    try {
+      const res = await fetch('/api/records');
+      if (!res.ok) throw new Error('Failed to load');
+      const rows = await res.json();
+      if (!rows.length) {
+        tbody.innerHTML = '<tr><td colspan="6" style="color:#71717a;">No records yet.</td></tr>';
+        return;
+      }
+      tbody.innerHTML = rows.slice(0, 20).map(r => {
+        const date = new Date(r.created_at).toLocaleDateString('en-NZ', { day:'2-digit', month:'short', year:'numeric' });
+        const ps3 = r.ps3_generated
+          ? '<span class="tag tag-yes">Yes</span>'
+          : '<span class="tag tag-no">No</span>';
+        return `<tr>
+          <td>${date}</td>
+          <td>${esc(r.client_name)}</td>
+          <td>${esc(r.address)}</td>
+          <td>${esc(r.system)}</td>
+          <td>${esc(r.structure)}</td>
+          <td>${ps3}</td>
+        </tr>`;
+      }).join('');
+    } catch {
+      tbody.innerHTML = '<tr><td colspan="6" style="color:#dc2626;">Could not load records.</td></tr>';
+    }
+  }
+
+  function esc(s) {
+    return String(s ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  }
+</script>
+</body>
+</html>
