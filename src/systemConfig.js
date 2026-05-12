@@ -4,26 +4,34 @@ const SYSTEMS = {
   'mini-post': {
     displayName: 'Mini Post',
     templateFile: 'MP_PS1_2026.pdf',
-    gateTemplateFile: 'MP_Gate_PS1_Template.pdf',
+    gateTemplateFile: 'MP_GATE_PS1_Template.pdf',
     heights: {
       pool:    { height: '1.26', heightAboveFix: '1.05' },
-      default: { height: '1.08', heightAboveFix: '0.85' }
+      default: { height: '1.01', heightAboveFix: '0.85' }
     }
   },
   'double-disc': {
     displayName: 'Double Disc',
     templateFile: 'DD_PS1_2026.pdf',
     heights: {
-      pool:    { height: '1.30', heightAboveFix: '1.25' },
-      default: { height: '1.13', heightAboveFix: '1.05' }
+      pool:    { height: '1.20', heightAboveFix: '1.25' },
+      default: { height: '1.00', heightAboveFix: '1.05' }
     }
   },
   'side-channel': {
-    displayName: 'Edgetec Infinity Side Channel',
-    templateFile: 'Side_Channel_PS_jur.pdf',
+    displayName: 'Side Mount Channel',
+    templateFile: 'Side_Channel_PS1_Template.pdf',
     heights: {
-      pool:    { height: '1.25', heightAboveFix: '1.05' },
-      default: { height: '1.20', heightAboveFix: '1.00' }
+      pool:    { height: '1.2', heightAboveFix: '1.2' },
+      default: { height: '1.00', heightAboveFix: '1.00' }
+    }
+  },
+  'top-channel': {
+    displayName: 'Top Mount Channel',
+    templateFile: 'Top_Channel_PS1_Template.pdf',
+    heights: {
+      pool:    { height: '1.2', heightAboveFix: '1.2' },
+      default: { height: '1.00', heightAboveFix: '1.00' }
     }
   }
 };

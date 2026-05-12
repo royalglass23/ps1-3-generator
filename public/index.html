@@ -83,12 +83,12 @@
   <div class="card">
     <h2>Project Details</h2>
     <div class="field">
-      <label for="clientName">Client / Designer Name</label>
-      <input type="text" id="clientName" placeholder="e.g. Royal Glass" />
+      <label for="clientName">Client / Designer Name <font color = "red">* </font> </label>
+      <input type="text" id="clientName" placeholder="e.g. Royal Glass" required/>
     </div>
     <div class="field">
-      <label for="address" required>Property Address</label>
-      <input type="text" id="address" placeholder="e.g. 13E Paul Matthews Rd" />
+      <label for="address">Property Address <font color = "red">* </font> </label>
+      <input type="text" id="address" placeholder="e.g. 13E Paul Matthews Rd" required/>
     </div>
     <div class="field">
       <label for="bcNumber">BC Number <span style="color:#71717a;font-weight:400;">(optional)</span></label>
@@ -108,7 +108,8 @@
       <select id="system">
         <option value="mini-post">Mini Post</option>
         <option value="double-disc">Double Disc</option>
-        <option value="side-channel">Edgetec Infinity Side Channel</option>
+        <option value="side-channel">Side Mount Channel</option>
+        <option value="top-channel">Top Mount Channel</option>
       </select>
     </div>
     <div class="field">
@@ -262,6 +263,23 @@
 
   async function generate(mode) {
     const status = document.getElementById('status');
+
+    const clientNameInput = document.getElementById('clientName');
+    const addressInput = document.getElementById('address');
+
+    if (!clientNameInput.value.trim() || !addressInput.value.trim()) {
+      status.className = 'error';
+      status.textContent = 'Client / Designer Name and Property Address are required.';
+
+      if (!clientNameInput.value.trim()) {
+        clientNameInput.focus();
+      } else {
+        addressInput.focus();
+      }
+
+      return;
+    }
+    
     const btns = document.querySelectorAll('button');
     btns.forEach(b => b.disabled = true);
     status.className = '';

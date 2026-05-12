@@ -6,8 +6,9 @@ const express = require('express');
 const cookieParser = require('cookie-parser');
 const path = require('path');
 const fs = require('fs');
+const helmet = require('helmet');
 
-const { getSystem, getHeights, buildDescription, buildShortDescription } = require('./systemConfig');
+const { SYSTEMS, getSystem, getHeights, buildDescription, buildShortDescription } = require('./systemConfig');
 const { fillPS1, fillPS3 } = require('./pdfFiller');
 const { logGeneration, getRecords } = require('./supabaseClient');
 
@@ -15,6 +16,11 @@ const app = express();
 const PORT = process.env.PORT || 3000;
 const ACCESS_PASSWORD = process.env.ACCESS_PASSWORD;
 const GENERATED_DIR = path.join(__dirname, '..', 'generated');
+
+app.disable('x-powered-by');
+app.use(helmet());
+app.use(express.json({ limit: '50kb' }));
+app.use(cookieParser());
 
 app.use(express.json());
 app.use(cookieParser());
@@ -43,14 +49,55 @@ app.post('/api/auth', (req, res) => {
   }
 });
 
+const ALLOWED = {
+  systems: Object.keys(SYSTEMS),
+  substrates: ['Timber', 'Concrete', 'Steel'],
+  structures: ['Deck', 'Balcony', 'Pool Area', 'Pool Fence', 'Stair Area', 'Landing', 'Stair and Balcony Area'],
+  locations: ['Internal', 'External'],
+  newOrExisting: ['New', 'Existing'],
+  types: ['ps1', 'ps3'],
+  thicknesses: ['12', '15']
+};
+
+function requireOneOf(value, allowed, label) {
+  if (!allowed.includes(value)) {
+    throw new Error(`Invalid ${label}.`);
+  }
+}
+
 app.post('/api/generate', requireAuth, async (req, res) => {
   try {
-    const { clientName, address, bcNumber, system, substrate, structure, location, newOrExisting, type, markPS3, thickness = '12' } = req.body;
+    const { clientName, address, bcNumber, system, substrate, structure, location, newOrExisting, type, markPS3, requiresGate, thickness = '12' } = req.body;
+
+    if (!clientName || !clientName.trim()) {
+      return res.status(400).json({ error: 'Client / Designer Name is required.' });
+    }
+    
+    if (!address || !address.trim()) {
+      return res.status(400).json({ error: 'Property Address is required.' });
+    }
+
+    const cleanClientName = clientName.trim();
+    const cleanAddress = address.trim();
+    requireOneOf(system, ALLOWED.systems, 'system');
+    requireOneOf(substrate, ALLOWED.substrates, 'substrate');
+    requireOneOf(structure, ALLOWED.structures, 'structure');
+    requireOneOf(location, ALLOWED.locations, 'location');
+    requireOneOf(newOrExisting, ALLOWED.newOrExisting, 'structure built value');
+    requireOneOf(type, ALLOWED.types, 'document type');
+    requireOneOf(thickness, ALLOWED.thicknesses, 'glass thickness');
 
     const sys = getSystem(system);
     const heights = getHeights(system, structure);
     const data = {
-      clientName, address, bcNumber, substrate, structure, location, newOrExisting, thickness,
+      clientName: cleanClientName,
+      address: cleanAddress,
+      bcNumber,
+      substrate,
+      structure,
+      location,
+      newOrExisting,
+      thickness,
       longDescription:  buildDescription(thickness, structure, system),
       shortDescription: buildShortDescription(structure, system)
     };
@@ -59,14 +106,19 @@ app.post('/api/generate', requireAuth, async (req, res) => {
 
     if (type === 'ps3') {
       pdfBytes = await fillPS3(data);
-      pdfFilename = `${address} - PS3.pdf`;
+      pdfFilename = `${cleanAddress} - PS3.pdf`;
     } else {
-      pdfBytes = await fillPS1(sys.templateFile, data, heights);
-      pdfFilename = `${address} - PS1.pdf`;
+      const templateFile =
+        system === 'mini-post' && requiresGate
+          ? sys.gateTemplateFile
+          : sys.templateFile;
+
+      pdfBytes = await fillPS1(templateFile, data, heights);
+      pdfFilename = `${cleanAddress} - PS1.pdf`;
       fs.writeFileSync(path.join(GENERATED_DIR, pdfFilename), pdfBytes);
       await logGeneration({
-        client_name: clientName,
-        address,
+        client_name: cleanClientName,
+        address: cleanAddress,
         bc_number: bcNumber || null,
         system,
         substrate,
