@@ -154,16 +154,18 @@ app.post('/api/generate', requireAuth, async (req, res) => {
       pdfFilename = sanitizeFilename(`${cleanAddress} - PS1.pdf`);
       fs.writeFileSync(path.join(GENERATED_DIR, pdfFilename), pdfBytes);
       await logGeneration({
-        client_name: cleanClientName,
-        address: cleanAddress,
-        bc_number: bcNumber || null,
+        client_name:     cleanClientName,
+        address:         cleanAddress,
+        bc_number:       bcNumber || null,
+        lot_description: (lotDescription || '').trim().slice(0, 300) || null,
         system,
         substrate,
         structure,
         location,
         new_or_existing: newOrExisting,
-        ps3_generated: !!markPS3,
-        filename: pdfFilename
+        thickness,
+        ps3_generated:   !!markPS3,
+        filename:        pdfFilename
       });
     }
 
@@ -178,8 +180,12 @@ app.post('/api/generate', requireAuth, async (req, res) => {
 
 app.get('/api/records', requireAuth, async (req, res) => {
   try {
-    const rows = await getRecords(50);
-    res.json(rows);
+    const VALID_LIMITS = [10, 20, 50, 100];
+    const limit  = VALID_LIMITS.includes(parseInt(req.query.limit, 10)) ? parseInt(req.query.limit, 10) : 20;
+    const page   = Math.max(1, parseInt(req.query.page || '1', 10));
+    const offset = (page - 1) * limit;
+    const { rows, total } = await getRecords(limit, offset);
+    res.json({ rows, total, page, limit });
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: 'Could not retrieve records.' });

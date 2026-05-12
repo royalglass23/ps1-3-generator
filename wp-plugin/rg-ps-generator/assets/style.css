@@ -1,0 +1,110 @@
+#rgps-root *, #rgps-root *::before, #rgps-root *::after { box-sizing: border-box; }
+
+/* ── Root — centers everything and controls top spacing ── */
+#rgps-root {
+  max-width: 760px;
+  margin: 3rem auto 0;   /* ← change 3rem to push up/down from page top */
+  padding: 0 1rem;
+  font-family: system-ui, sans-serif;
+  color: #18181b;
+}
+
+
+/* Password gate */
+#rgps-password-gate {
+  display: flex; align-items: center; justify-content: center; padding: 2rem 0 3rem;
+}
+#rgps-password-box {
+  background: #fff; border: 1px solid #e4e4e7; border-radius: 8px;
+  padding: 2rem; width: 100%; max-width: 320px;
+  display: flex; flex-direction: column; gap: 1rem;
+}
+#rgps-password-box h2 { font-size: 1.2rem; margin: 0; }
+#rgps-password-box p  { font-size: .875rem; color: #71717a; margin: 0; }
+#rgps-password-box input {
+  padding: .5rem; border: 1px solid #d4d4d8; border-radius: 4px; width: 100%; font-size: 1rem;
+}
+#rgps-password-error { color: #dc2626; font-size: .85rem; margin: 0; }
+
+/* App */
+#rgps-app { max-width: 760px; margin: 0 auto; padding: 0 0 4rem; }
+
+/* Cards */
+.rgps-card {
+  background: #fff; border: 1px solid #e4e4e7; border-radius: 8px;
+  padding: 1.5rem; margin-bottom: 1.5rem;
+}
+.rgps-card h2 {
+  font-size: .875rem; font-weight: 600; margin: 0 0 1rem;
+  color: #3f3f46; text-transform: uppercase; letter-spacing: .05em;
+}
+
+/* Fields */
+.rgps-field { display: flex; flex-direction: column; gap: .3rem; margin-bottom: 1rem; }
+.rgps-field:last-child { margin-bottom: 0; }
+.rgps-field label { font-size: .875rem; font-weight: 500; }
+.rgps-req { color: #dc2626; }
+.rgps-opt { color: #71717a; font-weight: 400; }
+#rgps-root input[type="text"],
+#rgps-root input[type="password"],
+#rgps-root select {
+  padding: .45rem .6rem; border: 1px solid #d4d4d8; border-radius: 4px;
+  font-size: .95rem; width: 100%; background: #fafafa;
+}
+#rgps-root input[type="text"]:focus,
+#rgps-root input[type="password"]:focus,
+#rgps-root select:focus {
+  outline: 2px solid #2563eb; border-color: transparent; background: #fff;
+}
+
+.rgps-radio-group { display: flex; gap: 1.5rem; }
+.rgps-radio-group label {
+  display: flex; align-items: center; gap: .4rem; font-weight: 400; cursor: pointer;
+}
+
+/* Buttons */
+.rgps-btn-row { display: flex; gap: .75rem; flex-wrap: wrap; margin-top: .5rem; }
+.rgps-btn {
+  padding: .55rem 1.2rem; border: none; border-radius: 4px;
+  font-size: .95rem; cursor: pointer; font-weight: 500; transition: opacity .15s;
+}
+.rgps-btn:disabled { opacity: .5; cursor: not-allowed; }
+.rgps-btn-primary   { background: #2563eb; color: #fff; }
+.rgps-btn-primary:hover:not(:disabled)   { background: #1d4ed8; }
+.rgps-btn-secondary { background: #059669; color: #fff; }
+.rgps-btn-secondary:hover:not(:disabled) { background: #047857; }
+.rgps-btn-both      { background: #7c3aed; color: #fff; }
+.rgps-btn-both:hover:not(:disabled)      { background: #6d28d9; }
+
+/* Status */
+#rgps-status { margin-top: .75rem; font-size: .875rem; min-height: 1.2em; }
+.rgps-status-error { color: #dc2626; }
+.rgps-status-ok    { color: #059669; }
+
+/* Records table */
+#rgps-root table { width: 100%; border-collapse: collapse; font-size: .82rem; }
+#rgps-root th, #rgps-root td {
+  text-align: left; padding: .4rem .5rem; border-bottom: 1px solid #e4e4e7; white-space: nowrap;
+}
+#rgps-root td:nth-child(2), #rgps-root td:nth-child(3) { white-space: normal; min-width: 110px; }
+#rgps-root th { background: #f4f4f5; font-weight: 600; }
+#rgps-root tr:last-child td { border-bottom: none; }
+.rgps-tag { display: inline-block; padding: .1rem .4rem; border-radius: 3px; font-size: .75rem; font-weight: 600; }
+.rgps-tag-yes { background: #dcfce7; color: #166534; }
+.rgps-tag-no  { background: #f4f4f5; color: #71717a; }
+
+/* Pagination controls */
+.rgps-records-controls {
+  display: flex; justify-content: space-between; align-items: center;
+  margin-bottom: .75rem; gap: .5rem; flex-wrap: wrap; font-size: .875rem;
+}
+.rgps-records-controls label { display: flex; align-items: center; gap: .4rem; }
+.rgps-records-controls select { width: auto; padding: .25rem .4rem; font-size: .875rem; }
+.rgps-records-nav { display: flex; align-items: center; gap: .5rem; }
+#rgps-records-info { color: #71717a; font-size: .8rem; }
+.rgps-btn-page {
+  padding: .3rem .65rem; border: 1px solid #d4d4d8; border-radius: 4px;
+  background: #fff; cursor: pointer; font-size: .85rem; font-weight: 500;
+}
+.rgps-btn-page:disabled { opacity: .4; cursor: not-allowed; }
+.rgps-btn-page:hover:not(:disabled) { background: #f4f4f5; }
