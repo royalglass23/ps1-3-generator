@@ -76,7 +76,7 @@ async function fillPS3(data) {
   setText(form, 'Description3', data.structure);
   setText(form, 'Description2', data.longDescription);
   setText(form, 'Date03',       today());
-  setText(form, 'Legal',        '');
+  setText(form, 'Legal',        data.lotDescription || '');
 
   setCheck(form, 'B1TB',    true);
   setCheck(form, 'B2TB',    false);

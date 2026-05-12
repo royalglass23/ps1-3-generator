@@ -15,7 +15,6 @@ The PDF templates already exist as fillable AcroForm PDFs. We are not recreating
 - **PDF filling:** `pdf-lib`
 - **Database:** Supabase (PostgreSQL) — logs every generated PS1
 - **Frontend:** Plain HTML + vanilla JS (single page, no framework)
-- **Containerisation:** Docker + Docker Compose
 - **Auth:** Single shared password via env variable (internal use only, Phase 1)
 
 No React. No build step. Keep it simple.
@@ -27,7 +26,6 @@ No React. No build step. Keep it simple.
 ```
 ps1-generator/
 ├── CLAUDE.md
-├── docker-compose.yml
 ├── .env.example
 ├── .gitignore
 ├── package.json
@@ -226,7 +224,7 @@ Returns last 50 generated records from Supabase for the admin log table.
 
 ### `GET /health`
 
-Returns `{ ok: true }` — used by Docker healthcheck.
+Returns `{ ok: true }`.
 
 ---
 
@@ -279,54 +277,13 @@ Password gate: on page load, if no valid session, show a simple password prompt.
 
 ---
 
-## Docker Setup
-
-### `docker-compose.yml`
-
-```yaml
-version: '3.8'
-services:
-  app:
-    build: .
-    ports:
-      - "${PORT:-3000}:3000"
-    volumes:
-      - ./templates:/app/templates:ro
-      - ./generated:/app/generated
-    env_file:
-      - .env
-    restart: unless-stopped
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:3000/health"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-```
-
-### `Dockerfile`
-
-```dockerfile
-FROM node:20-alpine
-WORKDIR /app
-COPY package*.json ./
-RUN npm ci --only=production
-COPY src/ ./src/
-COPY public/ ./public/
-RUN mkdir -p templates generated
-EXPOSE 3000
-CMD ["node", "src/server.js"]
-```
-
----
-
 ## Transferring to Another Machine
 
 1. Copy the entire project folder (USB or network)
 2. Copy the `/templates/` PDFs into the templates folder on the new machine
 3. Copy `.env` (or recreate it)
-4. Install Docker on the new machine if not already installed
-5. Run `docker compose up -d`
-6. Access at `http://localhost:3000`
+4. Run `npm install` then `node src/server.js`
+5. Access at `http://localhost:3000`
 
 The `templates/` folder and `.env` are gitignored so they travel separately from the code.
 
@@ -348,15 +305,14 @@ Push to a private GitHub repo under the Royal Glass account. This is the master 
 
 ## Build Order for Claude Code
 
-1. Scaffold `package.json` with dependencies: `express`, `pdf-lib`, `@supabase/supabase-js`, `cookie-parser`, `dotenv`
+1. Scaffold `package.json` with dependencies: `express`, `pdf-lib`, `cookie-parser`, `dotenv`, `helmet`, `mysql2`
 2. Build `systemConfig.js` with the system definitions and height lookup
 3. Build `pdfFiller.js` — the core logic that takes form inputs, selects template, fills all fields, returns PDF bytes
-4. Build `supabaseClient.js` — initialise client, export a `logGeneration(record)` function
+4. Build `supabaseClient.js` — initialise MySQL pool, export `logGeneration(record)` and `getRecords(limit)` functions
 5. Build `server.js` — Express app with all routes, session auth middleware
 6. Build `public/index.html` — form UI with record log table at bottom
-7. Build `Dockerfile` and `docker-compose.yml`
-8. Build `.env.example`
-9. Test with the actual PDF templates — verify all fields fill correctly and output downloads
+7. Build `.env.example`
+8. Test with the actual PDF templates — verify all fields fill correctly and output downloads
 
 ---
 

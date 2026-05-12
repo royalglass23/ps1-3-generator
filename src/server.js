@@ -4,6 +4,7 @@ require('dotenv').config();
 
 const express = require('express');
 const cookieParser = require('cookie-parser');
+const crypto = require('crypto');
 const path = require('path');
 const fs = require('fs');
 const helmet = require('helmet');
@@ -17,37 +18,24 @@ const PORT = process.env.PORT || 3000;
 const ACCESS_PASSWORD = process.env.ACCESS_PASSWORD;
 const GENERATED_DIR = path.join(__dirname, '..', 'generated');
 
-app.disable('x-powered-by');
-app.use(helmet());
-app.use(express.json({ limit: '50kb' }));
-app.use(cookieParser());
-
-app.use(express.json());
-app.use(cookieParser());
-
-// Clean up generated files older than 1 hour
-setInterval(() => {
-  const cutoff = Date.now() - 60 * 60 * 1000;
-  fs.readdirSync(GENERATED_DIR).forEach(file => {
-    const fp = path.join(GENERATED_DIR, file);
-    if (fs.statSync(fp).mtimeMs < cutoff) fs.unlinkSync(fp);
-  });
-}, 15 * 60 * 1000);
-
-function requireAuth(req, res, next) {
-  if (req.cookies.session === ACCESS_PASSWORD) return next();
-  res.status(401).json({ error: 'Unauthorised' });
+if (!ACCESS_PASSWORD) {
+  console.error('FATAL: ACCESS_PASSWORD is not set in .env — refusing to start.');
+  process.exit(1);
 }
 
-app.post('/api/auth', (req, res) => {
-  const { password } = req.body;
-  if (password === ACCESS_PASSWORD) {
-    res.cookie('session', ACCESS_PASSWORD, { httpOnly: true });
-    res.json({ ok: true });
-  } else {
-    res.status(401).json({ error: 'Wrong password' });
-  }
-});
+// In-memory session tokens (cleared on restart — acceptable for internal tool)
+const sessions = new Set();
+
+// Per-IP failed-attempt counter for the auth endpoint
+const authAttempts = new Map();
+
+// Strip characters that are illegal in filenames or HTTP header values
+function sanitizeFilename(name) {
+  return name
+    .replace(/[/\\?%*:|"<>\r\n\0]/g, '-')
+    .replace(/\.\./g, '--')
+    .trim();
+}
 
 const ALLOWED = {
   systems: Object.keys(SYSTEMS),
@@ -60,25 +48,73 @@ const ALLOWED = {
 };
 
 function requireOneOf(value, allowed, label) {
-  if (!allowed.includes(value)) {
-    throw new Error(`Invalid ${label}.`);
-  }
+  if (!allowed.includes(value)) throw new Error(`Invalid ${label}.`);
 }
+
+app.disable('x-powered-by');
+app.use(helmet({ contentSecurityPolicy: false }));
+app.use(express.json({ limit: '50kb' }));
+app.use(cookieParser());
+
+// Clean up generated files older than 1 hour
+setInterval(() => {
+  try {
+    const cutoff = Date.now() - 60 * 60 * 1000;
+    fs.readdirSync(GENERATED_DIR).forEach(file => {
+      try {
+        const fp = path.join(GENERATED_DIR, file);
+        if (fs.statSync(fp).mtimeMs < cutoff) fs.unlinkSync(fp);
+      } catch (_) {}
+    });
+  } catch (_) {}
+}, 15 * 60 * 1000);
+
+function requireAuth(req, res, next) {
+  if (req.cookies.session && sessions.has(req.cookies.session)) return next();
+  res.status(401).json({ error: 'Unauthorised' });
+}
+
+app.post('/api/auth', (req, res) => {
+  const { password } = req.body;
+  if (password === ACCESS_PASSWORD) {
+    authAttempts.delete(req.ip);
+    const token = crypto.randomBytes(32).toString('hex');
+    sessions.add(token);
+    res.cookie('session', token, { httpOnly: true, sameSite: 'strict' });
+    return res.json({ ok: true });
+  }
+
+  // Wrong password — increment failed attempt counter
+  const now = Date.now();
+  let entry = authAttempts.get(req.ip);
+  if (!entry || now > entry.resetAt) {
+    entry = { count: 0, resetAt: now + 15 * 60 * 1000 };
+  }
+  entry.count++;
+  authAttempts.set(req.ip, entry);
+  if (entry.count > 10) {
+    return res.status(429).json({ error: 'Too many attempts. Try again in 15 minutes.' });
+  }
+  res.status(401).json({ error: 'Wrong password' });
+});
 
 app.post('/api/generate', requireAuth, async (req, res) => {
   try {
-    const { clientName, address, bcNumber, system, substrate, structure, location, newOrExisting, type, markPS3, requiresGate, thickness = '12' } = req.body;
+    const { clientName, address, bcNumber, lotDescription, system, substrate, structure, location, newOrExisting, type, markPS3, requiresGate, thickness = '12' } = req.body;
 
     if (!clientName || !clientName.trim()) {
       return res.status(400).json({ error: 'Client / Designer Name is required.' });
     }
-    
     if (!address || !address.trim()) {
       return res.status(400).json({ error: 'Property Address is required.' });
     }
 
     const cleanClientName = clientName.trim();
     const cleanAddress = address.trim();
+
+    if (cleanClientName.length > 200) return res.status(400).json({ error: 'Client name is too long.' });
+    if (cleanAddress.length > 300)    return res.status(400).json({ error: 'Address is too long.' });
+
     requireOneOf(system, ALLOWED.systems, 'system');
     requireOneOf(substrate, ALLOWED.substrates, 'substrate');
     requireOneOf(structure, ALLOWED.structures, 'structure');
@@ -93,6 +129,7 @@ app.post('/api/generate', requireAuth, async (req, res) => {
       clientName: cleanClientName,
       address: cleanAddress,
       bcNumber,
+      lotDescription: (lotDescription || '').trim().slice(0, 300),
       substrate,
       structure,
       location,
@@ -106,7 +143,7 @@ app.post('/api/generate', requireAuth, async (req, res) => {
 
     if (type === 'ps3') {
       pdfBytes = await fillPS3(data);
-      pdfFilename = `${cleanAddress} - PS3.pdf`;
+      pdfFilename = sanitizeFilename(`${cleanAddress} - PS3.pdf`);
     } else {
       const templateFile =
         system === 'mini-post' && requiresGate
@@ -114,7 +151,7 @@ app.post('/api/generate', requireAuth, async (req, res) => {
           : sys.templateFile;
 
       pdfBytes = await fillPS1(templateFile, data, heights);
-      pdfFilename = `${cleanAddress} - PS1.pdf`;
+      pdfFilename = sanitizeFilename(`${cleanAddress} - PS1.pdf`);
       fs.writeFileSync(path.join(GENERATED_DIR, pdfFilename), pdfBytes);
       await logGeneration({
         client_name: cleanClientName,
@@ -135,7 +172,7 @@ app.post('/api/generate', requireAuth, async (req, res) => {
     res.send(Buffer.from(pdfBytes));
   } catch (err) {
     console.error(err);
-    res.status(500).json({ error: err.message });
+    res.status(500).json({ error: 'An error occurred generating the document.' });
   }
 });
 
@@ -144,7 +181,8 @@ app.get('/api/records', requireAuth, async (req, res) => {
     const rows = await getRecords(50);
     res.json(rows);
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    console.error(err);
+    res.status(500).json({ error: 'Could not retrieve records.' });
   }
 });
 

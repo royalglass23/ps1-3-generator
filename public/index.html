@@ -125,10 +125,10 @@
       <select id="structure">
         <option value="Deck">Deck</option>
         <option value="Balcony">Balcony</option>
-        <option value="Pool Area">Pool Area</option>
-        <option value="Stair Area">Stair Area</option>
+        <option value="Pool Area">Pool</option>
+        <option value="Stair Area">Stair</option>
         <option value="Landing">Landing</option>
-        <option value="Stair and Balcony Area">Stair and Balcony Area</option>
+        <option value="Stair and Balcony Area">Stair and Balcony</option>
       </select>
     </div>
     <div class="field">
@@ -188,18 +188,27 @@
 <script>
   // Auth
   async function submitPassword() {
-    const pwd = document.getElementById('pwd-input').value;
-    const res = await fetch('/api/auth', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ password: pwd })
-    });
-    if (res.ok) {
-      document.getElementById('password-gate').style.display = 'none';
-      document.getElementById('app').style.display = 'block';
-      loadRecords();
-    } else {
-      document.getElementById('password-error').style.display = 'block';
+    const errEl = document.getElementById('password-error');
+    errEl.style.display = 'none';
+    try {
+      const pwd = document.getElementById('pwd-input').value;
+      const res = await fetch('api/auth', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ password: pwd })
+      });
+      if (res.ok) {
+        document.getElementById('password-gate').style.display = 'none';
+        document.getElementById('app').style.display = 'block';
+        loadRecords();
+      } else {
+        const data = await res.json().catch(() => ({}));
+        errEl.textContent = res.status === 429 ? data.error : 'Incorrect password. Try again.';
+        errEl.style.display = 'block';
+      }
+    } catch {
+      errEl.textContent = 'Could not reach the server. Is it running?';
+      errEl.style.display = 'block';
     }
   }
 
@@ -209,7 +218,7 @@
 
   // Check if already authed
   (async () => {
-    const res = await fetch('/api/records');
+    const res = await fetch('api/records');
     if (res.ok) {
       document.getElementById('password-gate').style.display = 'none';
       document.getElementById('app').style.display = 'block';
@@ -235,7 +244,7 @@
   }
 
   async function fetchBlob(type, extra = {}) {
-    const res = await fetch('/api/generate', {
+    const res = await fetch('api/generate', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ ...formData(), type, ...extra })
@@ -309,7 +318,7 @@
   async function loadRecords() {
     const tbody = document.getElementById('records-body');
     try {
-      const res = await fetch('/api/records');
+      const res = await fetch('api/records');
       if (!res.ok) throw new Error('Failed to load');
       const rows = await res.json();
       if (!rows.length) {
