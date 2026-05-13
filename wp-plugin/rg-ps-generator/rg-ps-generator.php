@@ -195,8 +195,8 @@ function rgps_shortcode() {
             <div class="rgps-field">
               <label>Location</label>
               <div class="rgps-radio-group">
-                <label><input type="radio" name="rgps-location" value="Internal" /> Internal</label>
-                <label><input type="radio" name="rgps-location" value="External" checked /> External</label>
+                <label><input type="checkbox" name="rgps-location" value="Internal" /> Internal</label>
+                <label><input type="checkbox" name="rgps-location" value="External" checked /> External</label>
               </div>
             </div>
             <div class="rgps-field">
@@ -217,6 +217,7 @@ function rgps_shortcode() {
               <label for="rgps-thickness">Glass Thickness</label>
               <select id="rgps-thickness">
                 <option value="12" selected>12mm</option>
+                <option value="13.2">13.2mm</option>
                 <option value="15">15mm</option>
               </select>
             </div>
@@ -326,7 +327,7 @@ function rgps_handle_template() {
 
     $allowed = [
         'MP_PS1_2026.pdf',
-        'MP_GATE_PS1_Template.pdf',
+        'MP_PS1_POOL_Template.pdf',
         'DD_PS1_2026.pdf',
         'Side_Channel_PS1_Template.pdf',
         'Top_Channel_PS1_Template.pdf',
@@ -358,7 +359,7 @@ function rgps_handle_log() {
     $allowed_structures = [ 'Deck', 'Balcony', 'Pool', 'Pool Fence', 'Stair', 'Landing', 'Stair and Balcony' ];
     $allowed_locations  = [ 'Internal', 'External' ];
     $allowed_noe        = [ 'New', 'Existing' ];
-    $allowed_thick      = [ '12', '15' ];
+    $allowed_thick      = [ '12', '13.2', '15' ];
     $allowed_glass      = [ 'Toughened', 'Laminated' ];
 
     $system_type = sanitize_text_field( $_POST['system_type']     ?? '' );

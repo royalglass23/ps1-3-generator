@@ -10,7 +10,7 @@
     'mini-post': {
       displayName:      'Mini Post',
       templateFile:     'MP_PS1_2026.pdf',
-      gateTemplateFile: 'MP_GATE_PS1_Template.pdf',
+      poolTemplateFile: 'MP_PS1_POOL_Template.pdf',
       heights: {
         pool:    { height: '1.26', heightAboveFix: '1.05' },
         default: { height: '1.01', heightAboveFix: '0.85' },
@@ -56,8 +56,10 @@
     return s.heights[bucket];
   }
 
-  function buildDescription(thickness, structure, systemKey) {
-    return thickness + 'mm thick Glass Balustrade installation for ' + structure + ' area using ' + getSystem(systemKey).displayName + ' System';
+  function buildDescription(thickness, glassType, structure, newOrExisting, location,systemKey) {
+    const isPool  = POOL_STRUCTURES.includes(structure);
+    const product = isPool ? 'Pool Fencing' : 'Balustrade';
+    return thickness + 'mm ' + glassType + ' ' + product + ' installation for ' + newOrExisting + ' ' + location + ' ' + structure + ' area using ' + getSystem(systemKey).displayName + ' System';
   }
 
   function buildShortDescription(structure, systemKey) {
@@ -123,13 +125,20 @@
     function setText(name, value) {
       try { form.getTextField(name).setText(value || ''); } catch (_) {}
     }
+    function setMultilineText(name, value) {
+      try {
+        const field = form.getTextField(name);
+        field.enableMultiline();
+        field.setText(value || '');
+      } catch (_) {}
+    }
     function setCheck(name, checked) {
       try { const cb = form.getCheckBox(name); checked ? cb.check() : cb.uncheck(); } catch (_) {}
     }
 
     setText('Name',            data.clientName);
     setText('Address',         data.address);
-    setText('Description',     data.shortDescription);
+    setMultilineText('Description',     data.longDescription);
     setText('Date0',           date);
     setText('Date01',          date);
     setText('Date-4',          date);
@@ -144,11 +153,12 @@
     setCheck('TimberTB',    data.substrate === 'Timber');
     setCheck('ConcreteTB',  data.substrate === 'Concrete');
     setCheck('SteelTB',     data.substrate === 'Steel');
-    setCheck('InternalTB',  data.location === 'Internal');
-    setCheck('ExternalTB',  data.location === 'External');
+    setCheck('InternalTB',  data.location === 'Internal' || data.location === 'Internal and External');
+    setCheck('ExternalTB',  data.location === 'External' || data.location === 'Internal and External');
     setCheck('NewTB',       data.newOrExisting === 'New');
     setCheck('ExistingTB',  data.newOrExisting === 'Existing');
-    setCheck('ToughenedTB', true);
+    setCheck('ToughenedTB', data.glassType === 'Toughened');
+    setCheck('LaminatedTB', data.glassType === 'Laminated');
     setCheck('Direct',      true);
     setCheck('Cont',        false);
 
@@ -165,14 +175,21 @@
     function setText(name, value) {
       try { form.getTextField(name).setText(value || ''); } catch (_) {}
     }
+    function setMultilineText(name, value) {
+      try {
+        const field = form.getTextField(name);
+        field.enableMultiline();
+        field.setText(value || '');
+      } catch (_) {}
+    }
     function setCheck(name, checked) {
       try { const cb = form.getCheckBox(name); checked ? cb.check() : cb.uncheck(); } catch (_) {}
     }
 
     setText('BC',           data.bcNumber || '');
     setText('Address02',    data.address);
-    setText('Description3', data.structure);
-    setText('Description2', data.longDescription);
+    setMultilineText('Description3', data.location + ' ' + data.structure);
+    setMultilineText('Description2', data.longDescription);
     setText('Date03',       today());
     setText('Legal',        data.lotDescription || '');
 
@@ -201,6 +218,7 @@
 
   // ── Read form values ───────────────────────────────────────────────
   function formData() {
+    const locationChecks = Array.from(document.querySelectorAll('input[name="rgps-location"]:checked')).map(cb => cb.value);
     return {
       clientName:     el('rgps-clientName').value.trim(),
       address:        el('rgps-address').value.trim(),
@@ -210,10 +228,9 @@
       system:         el('rgps-system').value,
       substrate:      el('rgps-substrate').value,
       structure:      el('rgps-structure').value,
-      location:       document.querySelector('input[name="rgps-location"]:checked').value,
-      newOrExisting:  document.querySelector('input[name="rgps-newOrExisting"]:checked').value,
-      requiresGate:   document.querySelector('input[name="rgps-requiresGate"]:checked').value === 'Yes',
-      glassType:      document.querySelector('input[name="rgps-glassType"]:checked').value,
+      location:      locationChecks.length === 2 ? 'Internal and External' : (locationChecks[0] || 'External'),
+      glassType:     document.querySelector('input[name="rgps-glassType"]:checked').value,
+      newOrExisting: document.querySelector('input[name="rgps-newOrExisting"]:checked').value,
     };
   }
 
@@ -245,7 +262,7 @@
       const heights = getHeights(fd.system, fd.structure);
       const data    = {
         ...fd,
-        longDescription:  buildDescription(fd.thickness, fd.structure, fd.system),
+        longDescription: buildDescription(fd.thickness, fd.glassType, fd.structure, fd.newOrExisting, fd.location, fd.system),
         shortDescription: buildShortDescription(fd.structure, fd.system),
       };
 
@@ -270,9 +287,8 @@
         await ajax('rgps_log', { ...logFields, ps: 'PS3', filename });
 
       } else if (mode === 'ps1') {
-        const templateFile = fd.system === 'mini-post' && fd.requiresGate
-          ? sys.gateTemplateFile
-          : sys.templateFile;
+        const isPool = POOL_STRUCTURES.includes(fd.structure);
+        const templateFile = isPool && sys.poolTemplateFile ? sys.poolTemplateFile : sys.templateFile;
         const bytes    = await fillPS1(templateFile, data, heights);
         const filename = sanitizeFilename(fd.address + ' - PS1.pdf');
         triggerDownload(bytes, filename);
@@ -280,9 +296,8 @@
 
       } else {
         // both
-        const templateFile = fd.system === 'mini-post' && fd.requiresGate
-          ? sys.gateTemplateFile
-          : sys.templateFile;
+        const isPool = POOL_STRUCTURES.includes(fd.structure);
+        const templateFile = isPool && sys.poolTemplateFile ? sys.poolTemplateFile : sys.templateFile;
         const [ps3Bytes, ps1Bytes] = await Promise.all([
           fillPS3(data),
           fillPS1(templateFile, data, heights),
@@ -412,7 +427,7 @@
     el('rgps-substrate').value    = 'Timber';
     el('rgps-structure').value    = 'Deck';
     el('rgps-thickness').value    = '12';
-    document.querySelector('input[name="rgps-location"][value="External"]').checked    = true;
+    document.querySelectorAll('input[name="rgps-location"]').forEach(cb => { cb.checked = cb.value === 'External'; });
     document.querySelector('input[name="rgps-newOrExisting"][value="New"]').checked    = true;
     document.querySelector('input[name="rgps-requiresGate"][value="No"]').checked      = true;
     document.querySelector('input[name="rgps-glassType"][value="Toughened"]').checked  = true;
@@ -444,6 +459,12 @@
     el('rgps-btn-database').addEventListener('click', showRecordsView);
     el('rgps-btn-clear').addEventListener('click', clearForm);
     el('rgps-btn-back').addEventListener('click', showFormView);
+    // Auto-set Gate Required when structure changes to/from Pool
+    el('rgps-structure').addEventListener('change', function () {
+      const isPool = POOL_STRUCTURES.includes(this.value);
+      document.querySelector('input[name="rgps-requiresGate"][value="Yes"]').checked = isPool;
+      document.querySelector('input[name="rgps-requiresGate"][value="No"]').checked  = !isPool;
+    });
 
     // Pagination controls
     const limitSel = el('rgps-records-limit');
