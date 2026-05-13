@@ -41,10 +41,11 @@ function rgps_header_styles() {
         width: 100% !important;
         padding-left: 0 !important;
         padding-right: 0 !important;
+        padding-top: 2rem !important;
       }
 
       #rgps-root {
-        margin-top: 150px;
+        margin-top: 0;
         max-width: 760px !important;
         margin-left: auto !important;
         margin-right: auto !important;
@@ -69,12 +70,13 @@ function rgps_activate() {
         address         VARCHAR(300) NOT NULL,
         bc_number       VARCHAR(50),
         lot_description VARCHAR(300),
-        `system`        VARCHAR(50)  NOT NULL,
+        system_type     VARCHAR(50)  NOT NULL,
         substrate       VARCHAR(50)  NOT NULL,
         structure       VARCHAR(100) NOT NULL,
         location        VARCHAR(50)  NOT NULL,
         new_or_existing VARCHAR(20)  NOT NULL,
         thickness       VARCHAR(5),
+        glass_type      VARCHAR(20)  NOT NULL DEFAULT 'Toughened',
         ps              VARCHAR(10)  NOT NULL DEFAULT 'PS1',
         filename        VARCHAR(400)
     ) {$charset};" );
@@ -205,6 +207,13 @@ function rgps_shortcode() {
               </div>
             </div>
             <div class="rgps-field">
+              <label>Glass Type</label>
+              <div class="rgps-radio-group">
+                <label><input type="radio" name="rgps-glassType" value="Toughened" checked /> Toughened</label>
+                <label><input type="radio" name="rgps-glassType" value="Laminated" /> Laminated</label>
+              </div>
+            </div>
+            <div class="rgps-field">
               <label for="rgps-thickness">Glass Thickness</label>
               <select id="rgps-thickness">
                 <option value="12" selected>12mm</option>
@@ -262,11 +271,11 @@ function rgps_shortcode() {
               <table>
                 <thead><tr>
                   <th>Date</th><th>Client</th><th>Address</th><th>BC</th>
-                  <th>System</th><th>Substrate</th><th>Structure</th>
-                  <th>Location</th><th>Built</th><th>Thick.</th><th>PS</th>
+                  <th>System Type</th><th>Substrate</th><th>Structure</th>
+                  <th>Location</th><th>Built</th><th>Thick.</th><th>Glass</th><th>PS</th>
                 </tr></thead>
                 <tbody id="rgps-records-body">
-                  <tr><td colspan="11" style="color:#71717a;">Loading…</td></tr>
+                  <tr><td colspan="12" style="color:#71717a;">Loading…</td></tr>
                 </tbody>
               </table>
             </div>
@@ -350,32 +359,37 @@ function rgps_handle_log() {
     $allowed_locations  = [ 'Internal', 'External' ];
     $allowed_noe        = [ 'New', 'Existing' ];
     $allowed_thick      = [ '12', '15' ];
+    $allowed_glass      = [ 'Toughened', 'Laminated' ];
 
-    $system    = sanitize_text_field( $_POST['system']          ?? '' );
-    $substrate = sanitize_text_field( $_POST['substrate']       ?? '' );
-    $structure = sanitize_text_field( $_POST['structure']       ?? '' );
-    $location  = sanitize_text_field( $_POST['location']        ?? '' );
-    $noe       = sanitize_text_field( $_POST['new_or_existing'] ?? '' );
-    $thickness = sanitize_text_field( $_POST['thickness']       ?? '12' );
+    $system_type = sanitize_text_field( $_POST['system_type']     ?? '' );
+    $substrate   = sanitize_text_field( $_POST['substrate']       ?? '' );
+    $structure   = sanitize_text_field( $_POST['structure']       ?? '' );
+    $location    = sanitize_text_field( $_POST['location']        ?? '' );
+    $noe         = sanitize_text_field( $_POST['new_or_existing'] ?? '' );
+    $thickness   = sanitize_text_field( $_POST['thickness']       ?? '12' );
+    $glass_type  = sanitize_text_field( $_POST['glass_type']      ?? 'Toughened' );
 
-    if ( ! in_array( $system,    $allowed_systems,    true ) ) wp_send_json( [ 'ok' => false ], 400 );
-    if ( ! in_array( $substrate, $allowed_substrates, true ) ) wp_send_json( [ 'ok' => false ], 400 );
-    if ( ! in_array( $structure, $allowed_structures, true ) ) wp_send_json( [ 'ok' => false ], 400 );
-    if ( ! in_array( $location,  $allowed_locations,  true ) ) wp_send_json( [ 'ok' => false ], 400 );
-    if ( ! in_array( $noe,       $allowed_noe,        true ) ) wp_send_json( [ 'ok' => false ], 400 );
-    if ( ! in_array( $thickness, $allowed_thick,      true ) ) $thickness = '12';
+    if ( ! in_array( $system_type, $allowed_systems,    true ) ) wp_send_json( [ 'ok' => false ], 400 );
+    if ( ! in_array( $substrate,   $allowed_substrates, true ) ) wp_send_json( [ 'ok' => false ], 400 );
+    if ( ! in_array( $structure,   $allowed_structures, true ) ) wp_send_json( [ 'ok' => false ], 400 );
+    if ( ! in_array( $location,    $allowed_locations,  true ) ) wp_send_json( [ 'ok' => false ], 400 );
+    if ( ! in_array( $noe,         $allowed_noe,        true ) ) wp_send_json( [ 'ok' => false ], 400 );
+    if ( ! in_array( $thickness,   $allowed_thick,      true ) ) $thickness = '12';
+    if ( ! in_array( $glass_type,  $allowed_glass,      true ) ) $glass_type = 'Toughened';
 
     $wpdb->insert( $wpdb->prefix . 'rgps_records', [
+        'created_at'      => current_time( 'mysql' ),
         'client_name'     => substr( sanitize_text_field( $_POST['client_name']     ?? '' ), 0, 200 ),
         'address'         => substr( sanitize_text_field( $_POST['address']         ?? '' ), 0, 300 ),
         'bc_number'       => substr( sanitize_text_field( $_POST['bc_number']       ?? '' ), 0, 50  ) ?: null,
         'lot_description' => substr( sanitize_text_field( $_POST['lot_description'] ?? '' ), 0, 300 ) ?: null,
-        'system'          => $system,
+        'system_type'     => $system_type,
         'substrate'       => $substrate,
         'structure'       => $structure,
         'location'        => $location,
         'new_or_existing' => $noe,
         'thickness'       => $thickness,
+        'glass_type'      => $glass_type,
         'ps'              => in_array( $_POST['ps'] ?? '', [ 'PS1', 'PS3', 'Both' ], true ) ? $_POST['ps'] : 'PS1',
         'filename'        => substr( sanitize_file_name( $_POST['filename'] ?? '' ), 0, 400 ),
     ] );

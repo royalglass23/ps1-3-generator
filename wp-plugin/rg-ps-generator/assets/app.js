@@ -213,6 +213,7 @@
       location:       document.querySelector('input[name="rgps-location"]:checked').value,
       newOrExisting:  document.querySelector('input[name="rgps-newOrExisting"]:checked').value,
       requiresGate:   document.querySelector('input[name="rgps-requiresGate"]:checked').value === 'Yes',
+      glassType:      document.querySelector('input[name="rgps-glassType"]:checked').value,
     };
   }
 
@@ -253,12 +254,13 @@
         address:         fd.address,
         bc_number:       fd.bcNumber,
         lot_description: fd.lotDescription,
-        system:          fd.system,
+        system_type:     fd.system,
         substrate:       fd.substrate,
         structure:       fd.structure,
         location:        fd.location,
         new_or_existing: fd.newOrExisting,
         thickness:       fd.thickness,
+        glass_type:      fd.glassType,
       };
 
       if (mode === 'ps3') {
@@ -325,25 +327,29 @@
       if (nextEl) nextEl.disabled = recordsPage >= totalPages;
 
       if (!json.rows || !json.rows.length) {
-        tbody.innerHTML = '<tr><td colspan="11" style="color:#71717a;">No records yet.</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="12" style="color:#71717a;">No records yet.</td></tr>';
         return;
       }
       tbody.innerHTML = json.rows.map(r => {
-        const date  = new Date(r.created_at).toLocaleDateString('en-NZ', { day: '2-digit', month: 'short', year: 'numeric' });
-        const psMap = { PS1: 'rgps-tag-ps1', PS3: 'rgps-tag-ps3', Both: 'rgps-tag-both' };
-        const psVal = r.ps || 'PS1';
-        const psTag = '<span class="rgps-tag ' + (psMap[psVal] || 'rgps-tag-ps1') + '">' + esc(psVal) + '</span>';
+        const date   = new Date(r.created_at).toLocaleString('en-NZ', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit', hour12: true });
+        const psMap  = { PS1: 'rgps-tag-ps1', PS3: 'rgps-tag-ps3', Both: 'rgps-tag-both' };
+        const psVal  = r.ps || 'PS1';
+        const psTag  = '<span class="rgps-tag ' + (psMap[psVal] || 'rgps-tag-ps1') + '">' + esc(psVal) + '</span>';
+        const glMap  = { Toughened: 'rgps-tag-ps1', Laminated: 'rgps-tag-ps3' };
+        const glVal  = r.glass_type || 'Toughened';
+        const glTag  = '<span class="rgps-tag ' + (glMap[glVal] || 'rgps-tag-ps1') + '">' + esc(glVal) + '</span>';
         return '<tr>' +
           '<td>' + date + '</td>' +
           '<td>' + esc(r.client_name) + '</td>' +
           '<td>' + esc(r.address) + '</td>' +
           '<td>' + esc(r.bc_number || '—') + '</td>' +
-          '<td>' + esc(r.system) + '</td>' +
+          '<td>' + esc(r.system_type) + '</td>' +
           '<td>' + esc(r.substrate) + '</td>' +
           '<td>' + esc(r.structure) + '</td>' +
           '<td>' + esc(r.location) + '</td>' +
           '<td>' + esc(r.new_or_existing) + '</td>' +
           '<td>' + esc(r.thickness || '—') + '</td>' +
+          '<td>' + glTag + '</td>' +
           '<td>' + psTag + '</td>' +
         '</tr>';
       }).join('');
@@ -409,6 +415,7 @@
     document.querySelector('input[name="rgps-location"][value="External"]').checked    = true;
     document.querySelector('input[name="rgps-newOrExisting"][value="New"]').checked    = true;
     document.querySelector('input[name="rgps-requiresGate"][value="No"]').checked      = true;
+    document.querySelector('input[name="rgps-glassType"][value="Toughened"]').checked  = true;
     el('rgps-status').textContent = '';
     el('rgps-status').className   = '';
     el('rgps-clientName').focus();

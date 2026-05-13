@@ -3,8 +3,8 @@
 /* ── Root — centers everything and controls top spacing ── */
 #rgps-root {
   max-width: 760px;
-  margin: 3rem auto 0;   /* ← change 3rem to push up/down from page top */
-  padding: 0 1rem;
+  margin: 0 auto;   /* ← change 3rem to push up/down from page top */
+  padding: 8rem 1rem 0;
   font-family: system-ui, sans-serif;
   color: #18181b;
 }
