@@ -42,7 +42,7 @@
     },
   };
 
-  const POOL_STRUCTURES = ['Pool Area', 'Pool Fence'];
+  const POOL_STRUCTURES = ['Pool', 'Pool Fence'];
 
   function getSystem(key) {
     const s = SYSTEMS[key];
@@ -248,13 +248,24 @@
         shortDescription: buildShortDescription(fd.structure, fd.system),
       };
 
-      const logFields = { ...fd, new_or_existing: fd.newOrExisting };
+      const logFields = {
+        client_name:     fd.clientName,
+        address:         fd.address,
+        bc_number:       fd.bcNumber,
+        lot_description: fd.lotDescription,
+        system:          fd.system,
+        substrate:       fd.substrate,
+        structure:       fd.structure,
+        location:        fd.location,
+        new_or_existing: fd.newOrExisting,
+        thickness:       fd.thickness,
+      };
 
       if (mode === 'ps3') {
         const bytes    = await fillPS3(data);
         const filename = sanitizeFilename(fd.address + ' - PS3.pdf');
         triggerDownload(bytes, filename);
-        await ajax('rgps_log', { ...logFields, ps3_generated: 1, filename });
+        await ajax('rgps_log', { ...logFields, ps: 'PS3', filename });
 
       } else if (mode === 'ps1') {
         const templateFile = fd.system === 'mini-post' && fd.requiresGate
@@ -263,7 +274,7 @@
         const bytes    = await fillPS1(templateFile, data, heights);
         const filename = sanitizeFilename(fd.address + ' - PS1.pdf');
         triggerDownload(bytes, filename);
-        await ajax('rgps_log', { ...logFields, ps3_generated: 0, filename });
+        await ajax('rgps_log', { ...logFields, ps: 'PS1', filename });
 
       } else {
         // both
@@ -278,12 +289,11 @@
         const ps1File = sanitizeFilename(fd.address + ' - PS1.pdf');
         triggerDownload(ps3Bytes, ps3File);
         triggerDownload(ps1Bytes, ps1File);
-        await ajax('rgps_log', { ...logFields, ps3_generated: 1, filename: ps1File });
+        await ajax('rgps_log', { ...logFields, ps: 'Both', filename: ps1File });
       }
 
       status.className   = 'rgps-status-ok';
       status.textContent = mode === 'both' ? '2 PDFs downloaded.' : 'PDF downloaded.';
-      loadRecords();
 
     } catch (err) {
       status.className   = 'rgps-status-error';
@@ -319,10 +329,10 @@
         return;
       }
       tbody.innerHTML = json.rows.map(r => {
-        const date = new Date(r.created_at).toLocaleDateString('en-NZ', { day: '2-digit', month: 'short', year: 'numeric' });
-        const ps3  = r.ps3_generated
-          ? '<span class="rgps-tag rgps-tag-yes">Yes</span>'
-          : '<span class="rgps-tag rgps-tag-no">No</span>';
+        const date  = new Date(r.created_at).toLocaleDateString('en-NZ', { day: '2-digit', month: 'short', year: 'numeric' });
+        const psMap = { PS1: 'rgps-tag-ps1', PS3: 'rgps-tag-ps3', Both: 'rgps-tag-both' };
+        const psVal = r.ps || 'PS1';
+        const psTag = '<span class="rgps-tag ' + (psMap[psVal] || 'rgps-tag-ps1') + '">' + esc(psVal) + '</span>';
         return '<tr>' +
           '<td>' + date + '</td>' +
           '<td>' + esc(r.client_name) + '</td>' +
@@ -334,7 +344,7 @@
           '<td>' + esc(r.location) + '</td>' +
           '<td>' + esc(r.new_or_existing) + '</td>' +
           '<td>' + esc(r.thickness || '—') + '</td>' +
-          '<td>' + ps3 + '</td>' +
+          '<td>' + psTag + '</td>' +
         '</tr>';
       }).join('');
     } catch {
@@ -371,7 +381,37 @@
   function showApp() {
     el('rgps-password-gate').style.display = 'none';
     el('rgps-app').style.display = 'block';
+  }
+
+  function showRecordsView() {
+    el('rgps-form-view').style.display = 'none';
+    el('rgps-records-view').style.display = 'block';
+    el('rgps-root').classList.add('rgps-db-open');
+    recordsPage = 1;
     loadRecords();
+  }
+
+  function showFormView() {
+    el('rgps-records-view').style.display = 'none';
+    el('rgps-form-view').style.display = 'block';
+    el('rgps-root').classList.remove('rgps-db-open');
+  }
+
+  function clearForm() {
+    el('rgps-clientName').value   = '';
+    el('rgps-address').value      = '';
+    el('rgps-bcNumber').value     = '';
+    el('rgps-lotDescription').value = '';
+    el('rgps-system').value       = 'mini-post';
+    el('rgps-substrate').value    = 'Timber';
+    el('rgps-structure').value    = 'Deck';
+    el('rgps-thickness').value    = '12';
+    document.querySelector('input[name="rgps-location"][value="External"]').checked    = true;
+    document.querySelector('input[name="rgps-newOrExisting"][value="New"]').checked    = true;
+    document.querySelector('input[name="rgps-requiresGate"][value="No"]').checked      = true;
+    el('rgps-status').textContent = '';
+    el('rgps-status').className   = '';
+    el('rgps-clientName').focus();
   }
 
   // ── Boot ───────────────────────────────────────────────────────────
@@ -392,6 +432,11 @@
     document.querySelectorAll('#rgps-app .rgps-btn[data-mode]').forEach(btn => {
       btn.addEventListener('click', () => generate(btn.dataset.mode));
     });
+
+    // PS Database / Clear / Back buttons
+    el('rgps-btn-database').addEventListener('click', showRecordsView);
+    el('rgps-btn-clear').addEventListener('click', clearForm);
+    el('rgps-btn-back').addEventListener('click', showFormView);
 
     // Pagination controls
     const limitSel = el('rgps-records-limit');

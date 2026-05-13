@@ -69,13 +69,13 @@ function rgps_activate() {
         address         VARCHAR(300) NOT NULL,
         bc_number       VARCHAR(50),
         lot_description VARCHAR(300),
-        system          VARCHAR(50)  NOT NULL,
+        `system`        VARCHAR(50)  NOT NULL,
         substrate       VARCHAR(50)  NOT NULL,
         structure       VARCHAR(100) NOT NULL,
         location        VARCHAR(50)  NOT NULL,
         new_or_existing VARCHAR(20)  NOT NULL,
         thickness       VARCHAR(5),
-        ps3_generated   TINYINT(1)   DEFAULT 0,
+        ps              VARCHAR(10)  NOT NULL DEFAULT 'PS1',
         filename        VARCHAR(400)
     ) {$charset};" );
 
@@ -136,126 +136,144 @@ function rgps_shortcode() {
       </div>
 
       <div id="rgps-app" style="display:none;">
-        <h1 style="display:none;"></h1>
 
-        <div class="rgps-card">
-          <h2>Project Details</h2>
-          <div class="rgps-field">
-            <label for="rgps-clientName">Client / Designer Name <span class="rgps-req">*</span></label>
-            <input type="text" id="rgps-clientName" placeholder="e.g. Royal Glass" />
-          </div>
-          <div class="rgps-field">
-            <label for="rgps-address">Property Address <span class="rgps-req">*</span></label>
-            <input type="text" id="rgps-address" placeholder="e.g. 13E Paul Matthews Rd" />
-          </div>
-          <div class="rgps-field">
-            <label for="rgps-bcNumber">BC Number <span class="rgps-opt">(optional)</span></label>
-            <input type="text" id="rgps-bcNumber" placeholder="e.g. BCO12345678" />
-          </div>
-          <div class="rgps-field">
-            <label for="rgps-lotDescription">Lot Description</label>
-            <input type="text" id="rgps-lotDescription" />
-          </div>
-        </div>
+        <!-- ── Form view ── -->
+        <div id="rgps-form-view">
 
-        <div class="rgps-card">
-          <h2>System &amp; Installation</h2>
-          <div class="rgps-field">
-            <label for="rgps-system">System</label>
-            <select id="rgps-system">
-              <option value="mini-post">Mini Post</option>
-              <option value="double-disc">Double Disc</option>
-              <option value="side-channel">Side Mount Channel</option>
-              <option value="top-channel">Top Mount Channel</option>
-            </select>
-          </div>
-          <div class="rgps-field">
-            <label for="rgps-substrate">Structure Material</label>
-            <select id="rgps-substrate">
-              <option value="Timber">Timber</option>
-              <option value="Concrete">Concrete</option>
-              <option value="Steel">Steel</option>
-            </select>
-          </div>
-          <div class="rgps-field">
-            <label for="rgps-structure">Structure Type</label>
-            <select id="rgps-structure">
-              <option value="Deck">Deck</option>
-              <option value="Balcony">Balcony</option>
-              <option value="Pool Area">Pool</option>
-              <option value="Stair Area">Stair</option>
-              <option value="Landing">Landing</option>
-              <option value="Stair and Balcony Area">Stair and Balcony</option>
-            </select>
-          </div>
-          <div class="rgps-field">
-            <label>Location</label>
-            <div class="rgps-radio-group">
-              <label><input type="radio" name="rgps-location" value="Internal" /> Internal</label>
-              <label><input type="radio" name="rgps-location" value="External" checked /> External</label>
+          <div class="rgps-card">
+            <h2>Project Details</h2>
+            <div class="rgps-field">
+              <label for="rgps-clientName">Client / Designer Name <span class="rgps-req">*</span></label>
+              <input type="text" id="rgps-clientName" placeholder="e.g. Royal Glass" />
+            </div>
+            <div class="rgps-field">
+              <label for="rgps-address">Property Address <span class="rgps-req">*</span></label>
+              <input type="text" id="rgps-address" placeholder="e.g. 13E Paul Matthews Rd" />
+            </div>
+            <div class="rgps-field">
+              <label for="rgps-bcNumber">BC Number <span class="rgps-opt">(optional)</span></label>
+              <input type="text" id="rgps-bcNumber" placeholder="e.g. BCO12345678" />
+            </div>
+            <div class="rgps-field">
+              <label for="rgps-lotDescription">Lot Description</label>
+              <input type="text" id="rgps-lotDescription" />
             </div>
           </div>
-          <div class="rgps-field">
-            <label>Structure Built</label>
-            <div class="rgps-radio-group">
-              <label><input type="radio" name="rgps-newOrExisting" value="New" checked /> New</label>
-              <label><input type="radio" name="rgps-newOrExisting" value="Existing" /> Existing</label>
-            </div>
-          </div>
-          <div class="rgps-field">
-            <label for="rgps-thickness">Glass Thickness</label>
-            <select id="rgps-thickness">
-              <option value="12" selected>12mm</option>
-              <option value="15">15mm</option>
-            </select>
-          </div>
-          <div class="rgps-field">
-            <label>Gate Required?</label>
-            <div class="rgps-radio-group">
-              <label><input type="radio" name="rgps-requiresGate" value="Yes" /> Yes</label>
-              <label><input type="radio" name="rgps-requiresGate" value="No" checked /> No</label>
-            </div>
-          </div>
-        </div>
 
-        <div class="rgps-btn-row">
-          <button class="rgps-btn rgps-btn-primary"   data-mode="ps1">Generate PS1</button>
-          <button class="rgps-btn rgps-btn-secondary" data-mode="ps3">Generate PS3</button>
-          <button class="rgps-btn rgps-btn-both"      data-mode="both">Generate PS1 and PS3</button>
-        </div>
-        <div id="rgps-status"></div>
-
-        <div class="rgps-card" style="margin-top:2rem;">
-          <h2>Recent Records</h2>
-          <div class="rgps-records-controls">
-            <label>Show
-              <select id="rgps-records-limit">
-                <option value="10">10</option>
-                <option value="20" selected>20</option>
-                <option value="50">50</option>
-                <option value="100">100</option>
+          <div class="rgps-card">
+            <h2>System &amp; Installation</h2>
+            <div class="rgps-field">
+              <label for="rgps-system">System</label>
+              <select id="rgps-system">
+                <option value="mini-post">Mini Post</option>
+                <option value="double-disc">Double Disc</option>
+                <option value="side-channel">Side Mount Channel</option>
+                <option value="top-channel">Top Mount Channel</option>
               </select>
-              per page
-            </label>
-            <div class="rgps-records-nav">
-              <span id="rgps-records-info"></span>
-              <button class="rgps-btn-page" id="rgps-btn-prev" disabled>&#8592; Prev</button>
-              <button class="rgps-btn-page" id="rgps-btn-next" disabled>Next &#8594;</button>
+            </div>
+            <div class="rgps-field">
+              <label for="rgps-substrate">Structure Material</label>
+              <select id="rgps-substrate">
+                <option value="Timber">Timber</option>
+                <option value="Concrete">Concrete</option>
+                <option value="Steel">Steel</option>
+              </select>
+            </div>
+            <div class="rgps-field">
+              <label for="rgps-structure">Structure Type</label>
+              <select id="rgps-structure">
+                <option value="Deck">Deck</option>
+                <option value="Balcony">Balcony</option>
+                <option value="Pool">Pool Area</option>
+                <option value="Stair">Stair Area</option>
+                <option value="Landing">Landing</option>
+                <option value="Stair and Balcony">Stair and Balcony Area</option>
+              </select>
+            </div>
+            <div class="rgps-field">
+              <label>Location</label>
+              <div class="rgps-radio-group">
+                <label><input type="radio" name="rgps-location" value="Internal" /> Internal</label>
+                <label><input type="radio" name="rgps-location" value="External" checked /> External</label>
+              </div>
+            </div>
+            <div class="rgps-field">
+              <label>Structure Built</label>
+              <div class="rgps-radio-group">
+                <label><input type="radio" name="rgps-newOrExisting" value="New" checked /> New</label>
+                <label><input type="radio" name="rgps-newOrExisting" value="Existing" /> Existing</label>
+              </div>
+            </div>
+            <div class="rgps-field">
+              <label for="rgps-thickness">Glass Thickness</label>
+              <select id="rgps-thickness">
+                <option value="12" selected>12mm</option>
+                <option value="15">15mm</option>
+              </select>
+            </div>
+            <div class="rgps-field">
+              <label>Gate Required?</label>
+              <div class="rgps-radio-group">
+                <label><input type="radio" name="rgps-requiresGate" value="Yes" /> Yes</label>
+                <label><input type="radio" name="rgps-requiresGate" value="No" checked /> No</label>
+              </div>
             </div>
           </div>
-          <div style="overflow-x:auto;">
-            <table>
-              <thead><tr>
-                <th>Date</th><th>Client</th><th>Address</th><th>BC</th>
-                <th>System</th><th>Substrate</th><th>Structure</th>
-                <th>Location</th><th>Built</th><th>Thick.</th><th>PS3</th>
-              </tr></thead>
-              <tbody id="rgps-records-body">
-                <tr><td colspan="11" style="color:#71717a;">Loading…</td></tr>
-              </tbody>
-            </table>
+
+          <div class="rgps-btn-row">
+            <button class="rgps-btn rgps-btn-primary"   data-mode="ps1">Generate PS1</button>
+            <button class="rgps-btn rgps-btn-secondary" data-mode="ps3">Generate PS3</button>
+            <button class="rgps-btn rgps-btn-both"      data-mode="both">Generate Both</button>
           </div>
-        </div>
+          <div class="rgps-btn-row" style="margin-top:.5rem;">
+            <button class="rgps-btn rgps-btn-db"    id="rgps-btn-database">PS Database</button>
+            <button class="rgps-btn rgps-btn-clear" id="rgps-btn-clear">Clear</button>
+          </div>
+          <div id="rgps-status"></div>
+
+        </div><!-- /#rgps-form-view -->
+
+        <!-- ── Records view ── -->
+        <div id="rgps-records-view" style="display:none;">
+
+          <div class="rgps-records-page-header">
+            <button class="rgps-btn rgps-btn-back" id="rgps-btn-back">&#8592; Back</button>
+            <span class="rgps-records-page-title">PS Database</span>
+          </div>
+
+          <div class="rgps-card">
+            <div class="rgps-records-controls">
+              <label>Show
+                <select id="rgps-records-limit">
+                  <option value="10">10</option>
+                  <option value="20" selected>20</option>
+                  <option value="50">50</option>
+                  <option value="100">100</option>
+                </select>
+                per page
+              </label>
+              <div class="rgps-records-nav">
+                <span id="rgps-records-info"></span>
+                <button class="rgps-btn-page" id="rgps-btn-prev" disabled>&#8592; Prev</button>
+                <button class="rgps-btn-page" id="rgps-btn-next" disabled>Next &#8594;</button>
+              </div>
+            </div>
+            <div style="overflow-x:auto;">
+              <table>
+                <thead><tr>
+                  <th>Date</th><th>Client</th><th>Address</th><th>BC</th>
+                  <th>System</th><th>Substrate</th><th>Structure</th>
+                  <th>Location</th><th>Built</th><th>Thick.</th><th>PS</th>
+                </tr></thead>
+                <tbody id="rgps-records-body">
+                  <tr><td colspan="11" style="color:#71717a;">Loading…</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+        </div><!-- /#rgps-records-view -->
+
       </div>
 
     </div>
@@ -328,7 +346,7 @@ function rgps_handle_log() {
 
     $allowed_systems    = [ 'mini-post', 'double-disc', 'side-channel', 'top-channel' ];
     $allowed_substrates = [ 'Timber', 'Concrete', 'Steel' ];
-    $allowed_structures = [ 'Deck', 'Balcony', 'Pool Area', 'Pool Fence', 'Stair Area', 'Landing', 'Stair and Balcony Area' ];
+    $allowed_structures = [ 'Deck', 'Balcony', 'Pool', 'Pool Fence', 'Stair', 'Landing', 'Stair and Balcony' ];
     $allowed_locations  = [ 'Internal', 'External' ];
     $allowed_noe        = [ 'New', 'Existing' ];
     $allowed_thick      = [ '12', '15' ];
@@ -358,7 +376,7 @@ function rgps_handle_log() {
         'location'        => $location,
         'new_or_existing' => $noe,
         'thickness'       => $thickness,
-        'ps3_generated'   => (int) ( $_POST['ps3_generated'] ?? 0 ),
+        'ps'              => in_array( $_POST['ps'] ?? '', [ 'PS1', 'PS3', 'Both' ], true ) ? $_POST['ps'] : 'PS1',
         'filename'        => substr( sanitize_file_name( $_POST['filename'] ?? '' ), 0, 400 ),
     ] );
 
