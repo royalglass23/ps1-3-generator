@@ -232,8 +232,8 @@
       substrate:      el('rgps-substrate').value,
       structure:      el('rgps-structure').value,
       location:      locationChecks.length === 2 ? 'Internal and External' : (locationChecks[0] || 'External'),
-      glassType:     document.querySelector('input[name="rgps-glassType"]:checked').value,
-      newOrExisting: document.querySelector('input[name="rgps-newOrExisting"]:checked').value,
+      glassType:     document.querySelector('input[name="rgps-glassType"]:checked')?.value || 'Toughened',
+      newOrExisting: document.querySelector('input[name="rgps-newOrExisting"]:checked').value || 'New',
     };
   }
 
@@ -283,6 +283,9 @@
         glass_type:      fd.glassType,
       };
 
+      const isPool       = POOL_STRUCTURES.includes(fd.structure);
+      const templateFile = isPool && sys.poolTemplateFile ? sys.poolTemplateFile : sys.templateFile;
+
       if (mode === 'ps3') {
         const bytes    = await fillPS3(data);
         const filename = sanitizeFilename(fd.address + ' - PS3.pdf');
@@ -290,8 +293,6 @@
         await ajax('rgps_log', { ...logFields, ps: 'PS3', filename });
 
       } else if (mode === 'ps1') {
-        const isPool = POOL_STRUCTURES.includes(fd.structure);
-        const templateFile = isPool && sys.poolTemplateFile ? sys.poolTemplateFile : sys.templateFile;
         const bytes    = await fillPS1(templateFile, data, heights);
         const filename = sanitizeFilename(fd.address + ' - PS1.pdf');
         triggerDownload(bytes, filename);
@@ -299,8 +300,6 @@
 
       } else {
         // both
-        const isPool = POOL_STRUCTURES.includes(fd.structure);
-        const templateFile = isPool && sys.poolTemplateFile ? sys.poolTemplateFile : sys.templateFile;
         const [ps3Bytes, ps1Bytes] = await Promise.all([
           fillPS3(data),
           fillPS1(templateFile, data, heights),
@@ -372,7 +371,7 @@
         '</tr>';
       }).join('');
     } catch {
-      tbody.innerHTML = '<tr><td colspan="11" style="color:#dc2626;">Could not load records.</td></tr>';
+      tbody.innerHTML = '<tr><td colspan="12" style="color:#dc2626;">Could not load records.</td></tr>';
     }
   }
 

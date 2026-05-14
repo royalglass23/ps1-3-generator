@@ -82,7 +82,7 @@ function rgps_activate() {
     ) {$charset};" );
 
     if ( ! get_option( 'rgps_access_password' ) ) {
-        add_option( 'rgps_access_password', 'royalglass2025' );
+        add_option( 'rgps_access_password', '' );
     }
 }
 
@@ -92,17 +92,19 @@ add_action( 'admin_menu', function () {
 } );
 
 function rgps_settings_page() {
-    if ( ! current_user_can( 'manage_options' ) ) return;
-    if ( isset( $_POST['rgps_save'] ) ) {
-        check_admin_referer( 'rgps_settings' );
-        //update_option( 'rgps_access_password', sanitize_text_field( $_POST['rgps_access_password'] ) );
-        $new_pw = sanitize_text_field( $_POST['rgps_access_password'] );                   
-        if ( $new_pw !== '' ) {                        
-            update_option( 'rgps_access_password', wp_hash_password( $new_pw ) );
-        }   
-        echo '<div class="updated"><p>Saved.</p></div>';
-    }
-    $pw = esc_attr( get_option( 'rgps_access_password', '' ) );
+  if ( ! current_user_can( 'manage_options' ) ) return;
+  if ( isset( $_POST['rgps_save'] ) ) {
+      check_admin_referer( 'rgps_settings' );
+      $new_pw = sanitize_text_field( $_POST['rgps_access_password'] );
+      if ( $new_pw !== '' ) {
+          global $wpdb;
+          update_option( 'rgps_access_password', wp_hash_password( $new_pw ) );  
+          $wpdb->query( "DELETE FROM {$wpdb->options} WHERE option_name LIKE     
+'_transient_rgps_sess_%' OR option_name LIKE '_transient_timeout_rgps_sess_%'" );  
+      }
+      echo '<div class="updated"><p>Saved.</p></div>';
+  }
+    //$pw = esc_attr( get_option( 'rgps_access_password', '' ) );
     echo '<div class="wrap"><h1>RG PS Generator Settings</h1>
     <form method="post">
         ' . wp_nonce_field( 'rgps_settings', '_wpnonce', true, false ) . '
@@ -312,15 +314,14 @@ function rgps_handle_auth() {
     $password = sanitize_text_field( $_POST['password'] ?? '' );
     $stored   = get_option( 'rgps_access_password', '' );
 
-    $isHashed = ( strpos( $stored, '$P$' ) === 0 || strpos( $stored, '$2y$' ) === 0 ); 
+    if ( ! $stored ) {
+        wp_send_json( [ 'ok' => false, 'error' => 'No password set. Configure in WP Admin → Settings → RG PS Generator.' ], 403 );
+    }
 
-    if ( $isHashed ) {
-        $valid = wp_check_password( $password, $stored );
-    } else {
-        $valid = ( $password !== '' && $password === $stored );
-        if ( $valid ) {
-            update_option( 'rgps_access_password', wp_hash_password( $password ) );    
-        }
+    $valid = wp_check_password( $password, $stored );
+    if ( ! $valid && $password !== '' && $password === $stored ) {
+        $valid = true;
+        update_option( 'rgps_access_password', wp_hash_password( $password ) );
     }
 
     if ( $valid ) {
