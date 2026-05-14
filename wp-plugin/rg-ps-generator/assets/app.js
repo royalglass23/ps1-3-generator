@@ -19,6 +19,7 @@
     'double-disc': {
       displayName:  'Double Disc',
       templateFile: 'DD_PS1_2026.pdf',
+      poolTemplateFile: 'DD_PS1_POOL_Template.pdf',
       heights: {
         pool:    { height: '1.20', heightAboveFix: '1.25' },
         default: { height: '1.00', heightAboveFix: '1.05' },
@@ -27,6 +28,7 @@
     'side-channel': {
       displayName:  'Side Mount Channel',
       templateFile: 'Side_Channel_PS1_Template.pdf',
+      poolTemplateFile: 'Side_Channel_PS1_POOL_Template.pdf',
       heights: {
         pool:    { height: '1.2', heightAboveFix: '1.2' },
         default: { height: '1.00', heightAboveFix: '1.00' },
@@ -35,6 +37,7 @@
     'top-channel': {
       displayName:  'Top Mount Channel',
       templateFile: 'Top_Channel_PS1_Template.pdf',
+      poolTemplateFile: 'Top_Channel_PS1_POOL_Template.pdf',
       heights: {
         pool:    { height: '1.2', heightAboveFix: '1.2' },
         default: { height: '1.00', heightAboveFix: '1.00' },
@@ -322,7 +325,7 @@
 
   // ── Records table + pagination ────────────────────────────────────
   let recordsPage  = 1;
-  let recordsLimit = 20;
+  let recordsLimit = 10;
   let recordsTotal = 0;
 
   async function loadRecords() {

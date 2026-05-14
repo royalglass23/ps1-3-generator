@@ -95,7 +95,11 @@ function rgps_settings_page() {
     if ( ! current_user_can( 'manage_options' ) ) return;
     if ( isset( $_POST['rgps_save'] ) ) {
         check_admin_referer( 'rgps_settings' );
-        update_option( 'rgps_access_password', sanitize_text_field( $_POST['rgps_access_password'] ) );
+        //update_option( 'rgps_access_password', sanitize_text_field( $_POST['rgps_access_password'] ) );
+        $new_pw = sanitize_text_field( $_POST['rgps_access_password'] );                   
+        if ( $new_pw !== '' ) {                        
+            update_option( 'rgps_access_password', wp_hash_password( $new_pw ) );
+        }   
         echo '<div class="updated"><p>Saved.</p></div>';
     }
     $pw = esc_attr( get_option( 'rgps_access_password', '' ) );
@@ -104,7 +108,7 @@ function rgps_settings_page() {
         ' . wp_nonce_field( 'rgps_settings', '_wpnonce', true, false ) . '
         <table class="form-table">
             <tr><th>Access Password</th>
-                <td><input type="text" name="rgps_access_password" value="' . $pw . '" class="regular-text" /></td>
+                <td><input type="password" name="rgps_access_password" placeholder="Enter new password to change" class="regular-text" />     </td>
             </tr>
         </table>
         <p><input type="submit" name="rgps_save" class="button-primary" value="Save Changes" /></p>
@@ -255,8 +259,8 @@ function rgps_shortcode() {
             <div class="rgps-records-controls">
               <label>Show
                 <select id="rgps-records-limit">
-                  <option value="10">10</option>
-                  <option value="20" selected>20</option>
+                  <option value="10" selected>10</option>
+                  <option value="20">20</option>
                   <option value="50">50</option>
                   <option value="100">100</option>
                 </select>
@@ -308,7 +312,18 @@ function rgps_handle_auth() {
     $password = sanitize_text_field( $_POST['password'] ?? '' );
     $stored   = get_option( 'rgps_access_password', '' );
 
-    if ( $password !== '' && $password === $stored ) {
+    $isHashed = ( strpos( $stored, '$P$' ) === 0 || strpos( $stored, '$2y$' ) === 0 ); 
+
+    if ( $isHashed ) {
+        $valid = wp_check_password( $password, $stored );
+    } else {
+        $valid = ( $password !== '' && $password === $stored );
+        if ( $valid ) {
+            update_option( 'rgps_access_password', wp_hash_password( $password ) );    
+        }
+    }
+
+    if ( $valid ) {
         delete_transient( $rateKey );
         $token = bin2hex( random_bytes( 32 ) );
         set_transient( 'rgps_sess_' . $token, 1, 8 * HOUR_IN_SECONDS );
@@ -329,8 +344,11 @@ function rgps_handle_template() {
         'MP_PS1_2026.pdf',
         'MP_PS1_POOL_Template.pdf',
         'DD_PS1_2026.pdf',
+        'DD_PS1_POOL_Template.pdf',
         'Side_Channel_PS1_Template.pdf',
+        'Side_Channel_PS1_POOL_Template.pdf',
         'Top_Channel_PS1_Template.pdf',
+        'Top_Channel_PS1_POOL_Template.pdf',
         'PS3_Template.pdf',
     ];
 
@@ -357,7 +375,7 @@ function rgps_handle_log() {
     $allowed_systems    = [ 'mini-post', 'double-disc', 'side-channel', 'top-channel' ];
     $allowed_substrates = [ 'Timber', 'Concrete', 'Steel' ];
     $allowed_structures = [ 'Deck', 'Balcony', 'Pool', 'Pool Fence', 'Stair', 'Landing', 'Stair and Balcony' ];
-    $allowed_locations  = [ 'Internal', 'External' ];
+    $allowed_locations  = [ 'Internal', 'External', 'Internal and External' ];
     $allowed_noe        = [ 'New', 'Existing' ];
     $allowed_thick      = [ '12', '13.2', '15' ];
     $allowed_glass      = [ 'Toughened', 'Laminated' ];
@@ -406,8 +424,8 @@ function rgps_handle_records() {
     global $wpdb;
 
     $valid_limits = [ 10, 20, 50, 100 ];
-    $per_page = (int) ( $_POST['per_page'] ?? 20 );
-    if ( ! in_array( $per_page, $valid_limits, true ) ) $per_page = 20;
+    $per_page = (int) ( $_POST['per_page'] ?? 10 );
+    if ( ! in_array( $per_page, $valid_limits, true ) ) $per_page = 10;
     $page   = max( 1, (int) ( $_POST['page'] ?? 1 ) );
     $offset = ( $page - 1 ) * $per_page;
 

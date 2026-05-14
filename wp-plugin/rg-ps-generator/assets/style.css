@@ -130,8 +130,8 @@
 .rgps-records-nav { display: flex; align-items: center; gap: .5rem; }
 #rgps-records-info { color: #71717a; font-size: .8rem; }
 .rgps-btn-page {
-  padding: .3rem .65rem; border: 1px solid #d4d4d8; border-radius: 4px;
-  background: #fff; cursor: pointer; font-size: .85rem; font-weight: 500;
+  padding: .3rem .65rem; border: 1px solid #0d9488; border-radius: 4px;
+  background: #0d9488; color: #fff; cursor: pointer; font-size: .85rem; font-weight: 500;
 }
 .rgps-btn-page:disabled { opacity: .4; cursor: not-allowed; }
-.rgps-btn-page:hover:not(:disabled) { background: #f4f4f5; }
+.rgps-btn-page:hover:not(:disabled) { background: #0f766e; border-color: #0f766e; }
