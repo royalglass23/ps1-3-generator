@@ -173,10 +173,16 @@ function rgps_shortcode() {
             <div class="rgps-field">
               <label for="rgps-system">System</label>
               <select id="rgps-system">
-                <option value="mini-post">Mini Post</option>
+
                 <option value="double-disc">Double Disc</option>
+                <option value="jh-clamp">JH Clamp</option>
+                <option value="lugano">Lugano</option>
+                <option value="mini-post">Mini Post</option>
+                <option value="mp-sp14">Mini Post SP14</option>
                 <option value="side-channel">Side Mount Channel</option>
-                <option value="top-channel">Top Mount Channel</option>
+                <option value="viking">Viking</option>
+                <option value="vista">Vista</option>
+
               </select>
             </div>
             <div class="rgps-field">
@@ -195,6 +201,7 @@ function rgps_shortcode() {
                 <option value="Pool">Pool Area</option>
                 <option value="Stair">Stair Area</option>
                 <option value="Landing">Landing</option>
+                <option value="Stair and Landing">Stair and Landing</option>
                 <option value="Stair and Balcony">Stair and Balcony Area</option>
               </select>
             </div>
@@ -272,6 +279,7 @@ function rgps_shortcode() {
                 <span id="rgps-records-info"></span>
                 <button class="rgps-btn-page" id="rgps-btn-prev" disabled>&#8592; Prev</button>
                 <button class="rgps-btn-page" id="rgps-btn-next" disabled>Next &#8594;</button>
+                <button class="rgps-btn rgps-btn-export" id="rgps-btn-export">Export CSV</button>
               </div>
             </div>
             <div style="overflow-x:auto;">
@@ -351,6 +359,16 @@ function rgps_handle_template() {
         'Top_Channel_PS1_Template.pdf',
         'Top_Channel_PS1_POOL_Template.pdf',
         'PS3_Template.pdf',
+        'Jur_Viking_Template.pdf',
+        'Jur_Viking_POOL_Template.pdf',
+        'Jur_JH_Clamp_Template.pdf',
+        'Jur_JH_Clamp_POOL_Template.pdf',
+        'Opus_Vista_Template.pdf',
+        'Opus_Vista_POOL_Template.pdf',
+        'Opus_MP_SP14_Template.pdf',
+        'Opus_MP_SP14_POOL_Template.pdf',
+        'Opus_Lugano_Template.pdf',
+        'Opus_Lugano_POOL_Template.pdf'
     ];
 
     $name = sanitize_file_name( $_GET['name'] ?? '' );
@@ -373,9 +391,9 @@ function rgps_handle_log() {
     rgps_verify_token();
     global $wpdb;
 
-    $allowed_systems    = [ 'mini-post', 'double-disc', 'side-channel', 'top-channel' ];
+    $allowed_systems    = [ 'mini-post', 'double-disc', 'side-channel', 'top-channel', 'viking', 'jh-clamp', 'vista', 'mp-sp14', 'lugano' ];
     $allowed_substrates = [ 'Timber', 'Concrete', 'Steel' ];
-    $allowed_structures = [ 'Deck', 'Balcony', 'Pool', 'Pool Fence', 'Stair', 'Landing', 'Stair and Balcony' ];
+    $allowed_structures = [ 'Deck', 'Balcony', 'Pool', 'Pool Fence', 'Stair', 'Landing', 'Stair and Landing', 'Stair and Balcony' ];
     $allowed_locations  = [ 'Internal', 'External', 'Internal and External' ];
     $allowed_noe        = [ 'New', 'Existing' ];
     $allowed_thick      = [ '12', '13.2', '15' ];
@@ -424,6 +442,10 @@ function rgps_handle_records() {
     rgps_verify_token();
     global $wpdb;
 
+    if ( (int) ( $_POST['export'] ?? 0 ) === 1 ) {
+        rgps_send_all_records();
+    }
+
     $valid_limits = [ 10, 20, 50, 100 ];
     $per_page = (int) ( $_POST['per_page'] ?? 10 );
     if ( ! in_array( $per_page, $valid_limits, true ) ) $per_page = 10;
@@ -438,6 +460,17 @@ function rgps_handle_records() {
     $total = (int) $wpdb->get_var( "SELECT COUNT(*) FROM `{$table}`" );
 
     wp_send_json( [ 'ok' => true, 'rows' => $rows, 'total' => $total ] );
+}
+
+// ── AJAX: export all records ─────────────────────────────────────────
+add_action( 'wp_ajax_rgps_export',        'rgps_handle_export' );
+add_action( 'wp_ajax_nopriv_rgps_export', 'rgps_handle_export' );
+function rgps_handle_export() {
+    rgps_verify_token();
+    global $wpdb;
+    $table = $wpdb->prefix . 'rgps_records';
+    $rows  = $wpdb->get_results( "SELECT * FROM `{$table}` ORDER BY created_at DESC" );
+    wp_send_json( [ 'ok' => true, 'rows' => $rows ] );
 }
 
 // ── Token verification helper ────────────────────────────────────────

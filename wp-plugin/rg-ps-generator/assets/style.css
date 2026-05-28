@@ -89,6 +89,10 @@
 .rgps-btn-back  { background: #f4f4f5; color: #3f3f46; border: 1px solid #d4d4d8; }
 .rgps-btn-back:hover:not(:disabled)  { background: #e4e4e7; }
 
+/* Export button */
+.rgps-btn-export { background: #18181b; color: #fff; padding: .3rem .65rem; font-size: .85rem; }
+.rgps-btn-export:hover:not(:disabled) { background: #3f3f46; }
+
 /* Records page header */
 .rgps-records-page-header {
   display: flex; align-items: center; gap: 1rem; margin-bottom: 1.25rem;

@@ -43,6 +43,51 @@
         default: { height: '1.00', heightAboveFix: '1.00' },
       },
     },
+    'viking': {
+      displayName:  'Viking',
+      templateFile: 'Jur_Viking_Template.pdf',
+      poolTemplateFile: 'Jur_Viking_POOL_Template.pdf',
+      heights: {
+        pool:    { height: '1.2', heightAboveFix: '1.2' },
+        default: { height: '1.00', heightAboveFix: '1.00' },
+      },
+    },
+    'jh-clamp': {
+      displayName:  'JH Clamp',
+      templateFile: 'Jur_JH_Clamp_Template.pdf',
+      poolTemplateFile: 'Jur_JH_Clamp_POOL_Template.pdf',
+      heights: {
+        pool:    { height: '1.2', heightAboveFix: '1.2' },
+        default: { height: '1.00', heightAboveFix: '1.00' },
+      },
+    },
+    'vista': {
+      displayName:  'Vista',
+      templateFile: 'Opus_Vista_Template.pdf',
+      poolTemplateFile: 'Opus_Vista_POOL_Template.pdf',
+      heights: {
+        pool:    { height: '1.2', heightAboveFix: '1.2' },
+        default: { height: '1.00', heightAboveFix: '1.00' },
+      },
+    },
+    'mp-sp14': {
+      displayName:  'Mini Post SP14',
+      templateFile: 'Opus_MP_SP14_Template.pdf',
+      poolTemplateFile: 'Opus_MP_SP14_POOL_Template.pdf',
+      heights: {
+        pool:    { height: '1.2', heightAboveFix: '1.2' },
+        default: { height: '1.00', heightAboveFix: '1.00' },
+      },
+    },
+    'lugano': {
+      displayName:  'Lugano',
+      templateFile: 'Opus_Lugano_Template.pdf',
+      poolTemplateFile: 'Opus_Lugano_POOL_Template.pdf',
+      heights: {
+        pool:    { height: '1.2', heightAboveFix: '1.2' },
+        default: { height: '1.00', heightAboveFix: '1.00' },
+      },
+    },
   };
 
   const POOL_STRUCTURES = ['Pool', 'Pool Fence'];
@@ -163,7 +208,7 @@
     setCheck('ToughenedTB', data.glassType === 'Toughened');
     setCheck('LaminatedTB', data.glassType === 'Laminated');
     setCheck('Direct',      true);
-    setCheck('Cont',        false);
+    setCheck('Cont',        true);
 
     form.flatten();
     return pdf.save();
@@ -209,6 +254,18 @@
   // ── Trigger browser download ───────────────────────────────────────
   function triggerDownload(bytes, filename) {
     const blob = new Blob([bytes], { type: 'application/pdf' });
+    const url  = URL.createObjectURL(blob);
+    const a    = document.createElement('a');
+    a.href     = url;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    setTimeout(() => URL.revokeObjectURL(url), 2000);
+  }
+
+  function triggerTextDownload(text, filename, type) {
+    const blob = new Blob([text], { type });
     const url  = URL.createObjectURL(blob);
     const a    = document.createElement('a');
     a.href     = url;
@@ -322,10 +379,141 @@
     }
   }
 
+  // ── CSV export ────────────────────────────────────────────────────
+  const EXPORT_COOLDOWN = 30;
+  let exportCooldownTimer = null;
+
+  function csvEscape(val) {
+    const s = String(val ?? '');
+    return s.includes(',') || s.includes('"') || s.includes('\n')
+      ? '"' + s.replace(/"/g, '""') + '"'
+      : s;
+  }
+
+  async function exportCSV() {
+    const btn = el('rgps-btn-export');
+    if (btn.disabled) return;
+
+    btn.disabled = true;
+
+    try {
+      const json = await ajax('rgps_export', {});
+      if (!json.ok) throw new Error(json.error || 'Export failed');
+
+      const headers = ['Date','Client','Address','BC Number','System Type','Substrate','Structure','Location','Built','Thickness','Glass Type','PS'];
+      const rows = (json.rows || []).map(r => {
+        const date = new Date(r.created_at).toLocaleString('en-NZ', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit', hour12: true });
+        return [
+          date,
+          r.client_name,
+          r.address,
+          r.bc_number || '',
+          r.system_type,
+          r.substrate,
+          r.structure,
+          r.location,
+          r.new_or_existing,
+          r.thickness || '',
+          r.glass_type,
+          r.ps,
+        ].map(csvEscape).join(',');
+      });
+
+      const csv  = [headers.map(csvEscape).join(','), ...rows].join('\r\n');
+      const blob = new Blob([csv], { type: 'text/csv' });
+      const url  = URL.createObjectURL(blob);
+      const a    = document.createElement('a');
+      const dateStr = new Date().toISOString().slice(0, 10);
+      a.href     = url;
+      a.download = 'ps-records-' + dateStr + '.csv';
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      setTimeout(() => URL.revokeObjectURL(url), 2000);
+    } catch (err) {
+      btn.disabled = false;
+      alert('Export failed: ' + (err.message || 'Unknown error'));
+      return;
+    }
+
+    let remaining = EXPORT_COOLDOWN;
+    btn.textContent = 'Export CSV (' + remaining + 's)';
+    exportCooldownTimer = setInterval(() => {
+      remaining--;
+      if (remaining <= 0) {
+        clearInterval(exportCooldownTimer);
+        btn.disabled    = false;
+        btn.textContent = 'Export CSV';
+      } else {
+        btn.textContent = 'Export CSV (' + remaining + 's)';
+      }
+    }, 1000);
+  }
+
   // ── Records table + pagination ────────────────────────────────────
   let recordsPage  = 1;
   let recordsLimit = 10;
   let recordsTotal = 0;
+
+  function recordDate(value) {
+    return new Date(value).toLocaleString('en-NZ', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit', hour12: true });
+  }
+
+  function todayYmd() {
+    const d  = new Date();
+    const mm = String(d.getMonth() + 1).padStart(2, '0');
+    const dd = String(d.getDate()).padStart(2, '0');
+    return d.getFullYear() + '-' + mm + '-' + dd;
+  }
+
+  function csvCell(value) {
+    const text = String(value ?? '');
+    return /[",\r\n]/.test(text) ? '"' + text.replace(/"/g, '""') + '"' : text;
+  }
+
+  function startExportCooldown(btn) {
+    let remaining = 30;
+    btn.disabled = true;
+    btn.textContent = 'Export CSV (' + remaining + 's)...';
+    const timer = setInterval(function () {
+      remaining--;
+      if (remaining <= 0) {
+        clearInterval(timer);
+        btn.disabled = false;
+        btn.textContent = 'Export CSV';
+        return;
+      }
+      btn.textContent = 'Export CSV (' + remaining + 's)...';
+    }, 1000);
+  }
+
+  async function exportCSV(btn) {
+    startExportCooldown(btn);
+    try {
+      const json = await ajax('rgps_export', {});
+      if (!json.ok) throw new Error(json.error || 'Failed to export records');
+
+      const headers = ['Date', 'Client', 'Address', 'BC Number', 'System Type', 'Substrate', 'Structure', 'Location', 'Built', 'Thickness', 'Glass Type', 'PS'];
+      const rows = (json.rows || []).map(r => [
+        recordDate(r.created_at),
+        r.client_name,
+        r.address,
+        r.bc_number,
+        r.system_type,
+        r.substrate,
+        r.structure,
+        r.location,
+        r.new_or_existing,
+        r.thickness,
+        r.glass_type,
+        r.ps,
+      ]);
+      const csv = [headers, ...rows].map(row => row.map(csvCell).join(',')).join('\r\n') + '\r\n';
+      triggerTextDownload('\ufeff' + csv, 'ps-records-' + todayYmd() + '.csv', 'text/csv;charset=utf-8');
+    } catch (err) {
+      window.alert(err.message || 'Could not export records.');
+    }
+  }
 
   async function loadRecords() {
     const tbody = el('rgps-records-body');
@@ -348,7 +536,7 @@
         return;
       }
       tbody.innerHTML = json.rows.map(r => {
-        const date   = new Date(r.created_at).toLocaleString('en-NZ', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit', hour12: true });
+        const date   = recordDate(r.created_at);
         const psMap  = { PS1: 'rgps-tag-ps1', PS3: 'rgps-tag-ps3', Both: 'rgps-tag-both' };
         const psVal  = r.ps || 'PS1';
         const psTag  = '<span class="rgps-tag ' + (psMap[psVal] || 'rgps-tag-ps1') + '">' + esc(psVal) + '</span>';
@@ -472,6 +660,7 @@
     const limitSel = el('rgps-records-limit');
     const prevBtn  = el('rgps-btn-prev');
     const nextBtn  = el('rgps-btn-next');
+    const exportBtn = el('rgps-btn-export');
     if (limitSel) limitSel.addEventListener('change', function () {
       recordsLimit = parseInt(this.value, 10);
       recordsPage  = 1;
@@ -482,6 +671,9 @@
     });
     if (nextBtn) nextBtn.addEventListener('click', function () {
       if (recordsPage < Math.ceil(recordsTotal / recordsLimit)) { recordsPage++; loadRecords(); }
+    });
+    if (exportBtn) exportBtn.addEventListener('click', function () {
+      exportCSV(exportBtn);
     });
   });
 
