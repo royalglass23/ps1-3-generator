@@ -98,19 +98,23 @@ function rgps_settings_page() {
       $new_pw = sanitize_text_field( $_POST['rgps_access_password'] );
       if ( $new_pw !== '' ) {
           global $wpdb;
-          update_option( 'rgps_access_password', wp_hash_password( $new_pw ) );  
-          $wpdb->query( "DELETE FROM {$wpdb->options} WHERE option_name LIKE     
-'_transient_rgps_sess_%' OR option_name LIKE '_transient_timeout_rgps_sess_%'" );  
+          update_option( 'rgps_access_password', wp_hash_password( $new_pw ) );
+          $wpdb->query( "DELETE FROM {$wpdb->options} WHERE option_name LIKE '_transient_rgps_sess_%' OR option_name LIKE '_transient_timeout_rgps_sess_%'" );
       }
+      $api_key = sanitize_text_field( $_POST['rgps_google_places_key'] ?? '' );
+      update_option( 'rgps_google_places_key', $api_key );
       echo '<div class="updated"><p>Saved.</p></div>';
   }
-    //$pw = esc_attr( get_option( 'rgps_access_password', '' ) );
+    $places_key = esc_attr( get_option( 'rgps_google_places_key', '' ) );
     echo '<div class="wrap"><h1>RG PS Generator Settings</h1>
     <form method="post">
         ' . wp_nonce_field( 'rgps_settings', '_wpnonce', true, false ) . '
         <table class="form-table">
             <tr><th>Access Password</th>
-                <td><input type="password" name="rgps_access_password" placeholder="Enter new password to change" class="regular-text" />     </td>
+                <td><input type="password" name="rgps_access_password" placeholder="Enter new password to change" class="regular-text" /></td>
+            </tr>
+            <tr><th>Google Places API Key</th>
+                <td><input type="text" name="rgps_google_places_key" value="' . $places_key . '" class="regular-text" /></td>
             </tr>
         </table>
         <p><input type="submit" name="rgps_save" class="button-primary" value="Save Changes" /></p>
@@ -123,6 +127,13 @@ function rgps_shortcode() {
     wp_enqueue_script( 'pdf-lib',   'https://unpkg.com/pdf-lib@1.17.1/dist/pdf-lib.min.js', [], null, true );
     wp_enqueue_script( 'rgps-app',  RGPS_URL . 'assets/app.js', [ 'pdf-lib' ], '1.0.0', true );
     wp_enqueue_style(  'rgps-style', RGPS_URL . 'assets/style.css', [], '1.0.0' );
+
+    $places_key = get_option( 'rgps_google_places_key', '' );
+    if ( $places_key ) {
+        wp_enqueue_script( 'google-places',
+            'https://maps.googleapis.com/maps/api/js?key=' . urlencode( $places_key ) . '&libraries=places&callback=rgpsInitPlaces',
+            [ 'rgps-app' ], null, true );
+    }
 
     wp_localize_script( 'rgps-app', 'RGPSConfig', [
         'ajaxUrl' => admin_url( 'admin-ajax.php' ),

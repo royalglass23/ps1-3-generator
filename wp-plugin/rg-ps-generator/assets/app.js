@@ -690,3 +690,17 @@
   });
 
 })();
+
+// ── Google Places autocomplete (NZ only) ─────────────────────────────
+window.rgpsInitPlaces = function () {
+  const input = document.getElementById('rgps-address');
+  if (!input || !window.google) return;
+  const ac = new google.maps.places.Autocomplete(input, {
+    componentRestrictions: { country: 'nz' },
+    fields: ['formatted_address'],
+  });
+  ac.addListener('place_changed', function () {
+    const place = ac.getPlace();
+    if (place.formatted_address) input.value = place.formatted_address;
+  });
+};
