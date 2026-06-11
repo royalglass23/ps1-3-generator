@@ -88,6 +88,15 @@
         default: { height: '1.00', heightAboveFix: '1.00' },
       },
     },
+    'unex-ascot': {
+      displayName:  'Unex Ascot Aluminium Framed Balustrade',
+      templateFile: 'Unex_Ascot_Template.pdf',
+      poolTemplateFile: 'Unex_Ascot_POOL_Template.pdf',
+      heights: {
+        pool:    { height: '1.2', heightAboveFix: '1.2' },
+        default: { height: '1.00', heightAboveFix: '1.00' },
+      },
+    },
   };
 
   const POOL_STRUCTURES = ['Pool', 'Pool Fence'];

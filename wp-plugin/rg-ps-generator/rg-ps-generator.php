@@ -180,6 +180,7 @@ function rgps_shortcode() {
                 <option value="mini-post">Mini Post</option>
                 <option value="mp-sp14">Mini Post SP14</option>
                 <option value="side-channel">Side Mount Channel</option>
+                <option value="unex-ascot">Unex Ascot Aluminium Framed Balustrade</option>
                 <option value="viking">Viking</option>
                 <option value="vista">Vista</option>
 
@@ -368,7 +369,9 @@ function rgps_handle_template() {
         'Opus_MP_SP14_Template.pdf',
         'Opus_MP_SP14_POOL_Template.pdf',
         'Opus_Lugano_Template.pdf',
-        'Opus_Lugano_POOL_Template.pdf'
+        'Opus_Lugano_POOL_Template.pdf',
+        'Unex_Ascot_Template.pdf',
+        'Unex_Ascot_POOL_Template.pdf'
     ];
 
     $name = sanitize_file_name( $_GET['name'] ?? '' );
@@ -391,7 +394,7 @@ function rgps_handle_log() {
     rgps_verify_token();
     global $wpdb;
 
-    $allowed_systems    = [ 'mini-post', 'double-disc', 'side-channel', 'top-channel', 'viking', 'jh-clamp', 'vista', 'mp-sp14', 'lugano' ];
+    $allowed_systems    = [ 'mini-post', 'double-disc', 'side-channel', 'top-channel', 'viking', 'jh-clamp', 'vista', 'mp-sp14', 'lugano', 'unex-ascot' ];
     $allowed_substrates = [ 'Timber', 'Concrete', 'Steel' ];
     $allowed_structures = [ 'Deck', 'Balcony', 'Pool', 'Pool Fence', 'Stair', 'Landing', 'Stair and Landing', 'Stair and Balcony' ];
     $allowed_locations  = [ 'Internal', 'External', 'Internal and External' ];
