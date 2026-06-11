@@ -203,6 +203,9 @@
     setText('Address-2',       data.address);
     setText('Address02',       data.address);
     setText('Address-4',       data.address);
+    setMultilineText('Description02',  data.longDescription);
+    setText('LotDescription02', data.lotDescription || '');
+    setText('Structure02',     data.structure);
     setText('Thickness',       data.thickness || '12');
     setText('Height',          heights.height);
     setText('HeightAboveFix',  heights.heightAboveFix);
