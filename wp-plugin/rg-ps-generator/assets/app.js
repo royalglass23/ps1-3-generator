@@ -222,6 +222,20 @@
     setCheck('Direct',      true);
     setCheck('Cont',        true);
 
+    // Unex Ascot uses text fields and different names for substrate/location/etc.
+    if (data.system === 'unex-ascot') {
+      setText('Timber',   data.substrate === 'Timber'   ? 'X' : '');
+      setCheck('Concrete', data.substrate === 'Concrete');
+      setText('Steel',    data.substrate === 'Steel'    ? 'X' : '');
+      setText('Internal', (data.location === 'Internal' || data.location === 'Internal and External') ? 'X' : '');
+      setText('External', (data.location === 'External' || data.location === 'Internal and External') ? 'X' : '');
+      setText('NewTB',      data.newOrExisting === 'New'      ? 'X' : '');
+      setText('Existing',   data.newOrExisting === 'Existing' ? 'X' : '');
+      setText('ToughenedTB', data.glassType === 'Toughened'  ? 'X' : '');
+      setText('Direct',   'X');
+      setText('Job Number', data.bcNumber || '');
+    }
+
     form.flatten();
     return pdf.save();
   }
