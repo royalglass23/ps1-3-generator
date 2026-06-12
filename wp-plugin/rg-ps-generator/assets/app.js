@@ -224,18 +224,19 @@
 
     // Unex Ascot uses text fields and different names for substrate/location/etc.
     if (data.system === 'unex-ascot') {
-      setText('Timber',   data.substrate === 'Timber'   ? 'X' : '');
+      setText('Timber',   data.substrate === 'Timber'   ? '✔' : '');
       setCheck('Concrete', data.substrate === 'Concrete');
-      setText('Steel',    data.substrate === 'Steel'    ? 'X' : '');
-      setText('Internal', (data.location === 'Internal' || data.location === 'Internal and External') ? 'X' : '');
-      setText('External', (data.location === 'External' || data.location === 'Internal and External') ? 'X' : '');
-      setText('NewTB',      data.newOrExisting === 'New'      ? 'X' : '');
-      setText('Existing',   data.newOrExisting === 'Existing' ? 'X' : '');
-      setText('ToughenedTB', data.glassType === 'Toughened'  ? 'X' : '');
-      setText('Direct',   'X');
+      setText('Steel',    data.substrate === 'Steel'    ? '✔' : '');
+      setText('Internal', (data.location === 'Internal' || data.location === 'Internal and External') ? '✔' : '');
+      setText('External', (data.location === 'External' || data.location === 'Internal and External') ? '✔' : '');
+      setText('NewTB',      data.newOrExisting === 'New'      ? '✔' : '');
+      setText('Existing',   data.newOrExisting === 'Existing' ? '✔' : '');
+      setText('ToughenedTB', data.glassType === 'Toughened'  ? '✔' : '');
+      setText('Direct',   '✔');
       setText('Job Number', data.bcNumber || '');
     }
 
+    form.updateFieldAppearances();
     form.flatten();
     return pdf.save();
   }
