@@ -191,6 +191,7 @@ function rgps_shortcode() {
                 <option value="mini-post">Mini Post</option>
                 <option value="mp-sp14">Mini Post SP14</option>
                 <option value="side-channel">Side Mount Channel</option>
+                <option value="side-channel">Top Mount Channel</option>
                 <option value="unex-ascot">Unex Ascot Aluminium Framed Balustrade</option>
                 <option value="viking">Viking</option>
                 <option value="vista">Vista</option>
