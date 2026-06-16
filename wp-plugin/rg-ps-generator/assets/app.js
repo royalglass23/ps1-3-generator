@@ -97,6 +97,15 @@
         default: { height: '1.00', heightAboveFix: '1.00' },
       },
     },
+    'unex-metropolis': {
+      displayName:  'Unex Metropolis',
+      templateFile: 'Unex_Metropolis_Template.pdf',
+      poolTemplateFile: 'Unex_Metropolis_POOL_Template.pdf',
+      heights: {
+        pool:    { height: '1.2', heightAboveFix: '1.2' },
+        default: { height: '1.00', heightAboveFix: '1.00' },
+      },
+    },
   };
 
   const POOL_STRUCTURES = ['Pool', 'Pool Fence'];
