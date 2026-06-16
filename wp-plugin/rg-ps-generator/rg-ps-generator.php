@@ -193,7 +193,7 @@ function rgps_shortcode() {
                 <option value="side-channel">Side Mount Channel</option>
                 <option value="side-channel">Top Mount Channel</option>
                 <option value="unex-ascot">Unex Ascot</option>
-                <option value="unex-ascot">Unex Metropolis</option>
+                <option value="unex-metropolis">Unex Metropolis</option>
                 <option value="viking">Viking</option>
                 <option value="vista">Vista</option>
 
