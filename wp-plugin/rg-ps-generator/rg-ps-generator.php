@@ -365,7 +365,7 @@ function rgps_handle_template() {
     rgps_verify_token();
 
     $allowed = [
-        'Hidden_Template.pdf',
+        'Hidden_PS1_Template.pdf',
         'Hidden_POOL_Template.pdf',
         'MP_PS1_2026.pdf',
         'MP_PS1_POOL_Template.pdf',
