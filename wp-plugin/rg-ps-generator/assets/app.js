@@ -34,6 +34,15 @@
         default: { height: '1.00', heightAboveFix: '1.00' },
       },
     },
+    'hidden': {
+      displayName:  'Hidden Face',
+      templateFile: 'Hidden_PS1_Template.pdf',
+      poolTemplateFile: 'Hidden_POOL_Template.pdf',
+      heights: {
+        pool:    { height: '1.26', heightAboveFix: '1.05' },
+        default: { height: '1.01', heightAboveFix: '0.85' },
+      },
+    },
     'top-channel': {
       displayName:  'Top Mount Channel',
       templateFile: 'Top_Channel_PS1_Template.pdf',
@@ -89,7 +98,7 @@
       },
     },
     'unex-ascot': {
-      displayName:  'Unex Ascot Aluminium Framed Balustrade',
+      displayName:  'Unex Ascot',
       templateFile: 'Unex_Ascot_Template.pdf',
       poolTemplateFile: 'Unex_Ascot_POOL_Template.pdf',
       heights: {
