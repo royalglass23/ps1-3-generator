@@ -52,10 +52,17 @@
         default: { height: '1.00', heightAboveFix: '1.00' },
       },
     },
-    'viking': {
-      displayName:  'Viking',
-      templateFile: 'Jur_Viking_Template.pdf',
-      poolTemplateFile: 'Jur_Viking_POOL_Template.pdf',
+    'viking-aluminium': {
+      displayName:  'Viking Aluminium',
+      templateFile: 'Juralco_Viking_Aluminium.pdf',
+      heights: {
+        pool:    { height: '1.2', heightAboveFix: '1.2' },
+        default: { height: '1.00', heightAboveFix: '1.00' },
+      },
+    },
+    'viking-glass': {
+      displayName:  'Viking Glass',
+      templateFile: 'Juralco_Viking_Glass.pdf',
       heights: {
         pool:    { height: '1.2', heightAboveFix: '1.2' },
         default: { height: '1.00', heightAboveFix: '1.00' },
@@ -134,7 +141,12 @@
   function buildDescription(thickness, glassType, structure, newOrExisting, location,systemKey) {
     const isPool  = POOL_STRUCTURES.includes(structure);
     const product = isPool ? 'Pool Fencing' : 'Balustrade';
-    return thickness + 'mm ' + glassType + ' ' + product + ' installation for ' + newOrExisting + ' ' + location + ' ' + structure + ' area using ' + getSystem(systemKey).displayName + ' System';
+    const suffix  = product + ' installation for ' + newOrExisting + ' ' + location + ' ' + structure + ' area using ' + getSystem(systemKey).displayName + ' System';
+    // 'None' = aluminium baluster (no glass): drop thickness + glass word.
+    if (glassType === 'None') {
+      return 'Aluminium ' + suffix;
+    }
+    return thickness + 'mm ' + glassType + ' ' + suffix;
   }
 
   function buildShortDescription(structure, systemKey) {
@@ -572,7 +584,7 @@
         const psMap  = { PS1: 'rgps-tag-ps1', PS3: 'rgps-tag-ps3', Both: 'rgps-tag-both' };
         const psVal  = r.ps || 'PS1';
         const psTag  = '<span class="rgps-tag ' + (psMap[psVal] || 'rgps-tag-ps1') + '">' + esc(psVal) + '</span>';
-        const glMap  = { Toughened: 'rgps-tag-ps1', Laminated: 'rgps-tag-ps3' };
+        const glMap  = { Toughened: 'rgps-tag-ps1', Laminated: 'rgps-tag-ps3', None: 'rgps-tag-ps3' };
         const glVal  = r.glass_type || 'Toughened';
         const glTag  = '<span class="rgps-tag ' + (glMap[glVal] || 'rgps-tag-ps1') + '">' + esc(glVal) + '</span>';
         return '<tr>' +
@@ -686,6 +698,12 @@
       const isPool = POOL_STRUCTURES.includes(this.value);
       document.querySelector('input[name="rgps-requiresGate"][value="Yes"]').checked = isPool;
       document.querySelector('input[name="rgps-requiresGate"][value="No"]').checked  = !isPool;
+    });
+    // Aluminium baluster systems carry no glass: auto-select "Not Glass".
+    el('rgps-system').addEventListener('change', function () {
+      const glassVal = this.value === 'viking-aluminium' ? 'None' : 'Toughened';
+      const radio = document.querySelector('input[name="rgps-glassType"][value="' + glassVal + '"]');
+      if (radio) radio.checked = true;
     });
 
     // Pagination controls
