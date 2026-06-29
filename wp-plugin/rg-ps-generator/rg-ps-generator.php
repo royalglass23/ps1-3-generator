@@ -195,7 +195,8 @@ function rgps_shortcode() {
                 <option value="top-channel">Top Mount Channel</option>
                 <option value="unex-ascot">Unex Ascot</option>
                 <option value="unex-metropolis">Unex Metropolis</option>
-                <option value="viking">Viking</option>
+                <option value="viking-aluminium">Viking Aluminium</option>
+                <option value="viking-glass">Viking Glass</option>
                 <option value="vista">Vista</option>
 
               </select>
@@ -239,6 +240,7 @@ function rgps_shortcode() {
               <div class="rgps-radio-group">
                 <label><input type="radio" name="rgps-glassType" value="Toughened" checked /> Toughened</label>
                 <label><input type="radio" name="rgps-glassType" value="Laminated" /> Laminated</label>
+                <label><input type="radio" name="rgps-glassType" value="None" /> Not Glass</label>
               </div>
             </div>
             <div class="rgps-field">
@@ -376,8 +378,8 @@ function rgps_handle_template() {
         'Top_Channel_PS1_Template.pdf',
         'Top_Channel_PS1_POOL_Template.pdf',
         'PS3_Template.pdf',
-        'Jur_Viking_Template.pdf',
-        'Jur_Viking_POOL_Template.pdf',
+        'Juralco_Viking_Aluminium.pdf',
+        'Juralco_Viking_Glass.pdf',
         'Jur_JH_Clamp_Template.pdf',
         'Jur_JH_Clamp_POOL_Template.pdf',
         'Opus_Vista_Template.pdf',
@@ -412,13 +414,13 @@ function rgps_handle_log() {
     rgps_verify_token();
     global $wpdb;
 
-    $allowed_systems    = [ 'hidden', 'mini-post', 'double-disc', 'side-channel', 'top-channel', 'viking', 'jh-clamp', 'vista', 'mp-sp14', 'lugano', 'unex-ascot', 'unex-metropolis' ];
+    $allowed_systems    = [ 'hidden', 'mini-post', 'double-disc', 'side-channel', 'top-channel', 'viking-aluminium', 'viking-glass', 'jh-clamp', 'vista', 'mp-sp14', 'lugano', 'unex-ascot', 'unex-metropolis' ];
     $allowed_substrates = [ 'Timber', 'Concrete', 'Steel' ];
     $allowed_structures = [ 'Deck', 'Balcony', 'Pool', 'Pool Fence', 'Stair', 'Landing', 'Stair and Landing', 'Stair and Balcony' ];
     $allowed_locations  = [ 'Internal', 'External', 'Internal and External' ];
     $allowed_noe        = [ 'New', 'Existing' ];
     $allowed_thick      = [ '12', '13.2', '15' ];
-    $allowed_glass      = [ 'Toughened', 'Laminated' ];
+    $allowed_glass      = [ 'Toughened', 'Laminated', 'None' ];
 
     $system_type = sanitize_text_field( $_POST['system_type']     ?? '' );
     $substrate   = sanitize_text_field( $_POST['substrate']       ?? '' );
