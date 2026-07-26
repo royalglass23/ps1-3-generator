@@ -380,6 +380,7 @@ function rgps_handle_template() {
         'PS3_Template.pdf',
         'Juralco_Viking_Aluminium.pdf',
         'Juralco_Viking_Glass.pdf',
+        'Juralco_Viking_Glass_POOL.pdf',
         'Jur_JH_Clamp_Template.pdf',
         'Jur_JH_Clamp_POOL_Template.pdf',
         'Opus_Vista_Template.pdf',

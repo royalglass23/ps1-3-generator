@@ -63,6 +63,7 @@
     'viking-glass': {
       displayName:  'Viking Glass',
       templateFile: 'Juralco_Viking_Glass.pdf',
+      poolTemplateFile: 'Juralco_Viking_Glass_POOL.pdf',
       heights: {
         pool:    { height: '1.2', heightAboveFix: '1.2' },
         default: { height: '1.00', heightAboveFix: '1.00' },
@@ -146,7 +147,7 @@
     if (glassType === 'None') {
       return 'Aluminium ' + suffix;
     }
-    return thickness + 'mm ' + glassType + 'Glass ' + suffix;
+    return thickness + 'mm ' + glassType + ' Glass ' + suffix;
   }
 
   function buildShortDescription(structure, systemKey) {
