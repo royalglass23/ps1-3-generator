@@ -385,8 +385,17 @@
         glass_type:      fd.glassType,
       };
 
-      const isPool       = POOL_STRUCTURES.includes(fd.structure);
-      const templateFile = isPool && sys.poolTemplateFile ? sys.poolTemplateFile : sys.templateFile;
+      const isPool = POOL_STRUCTURES.includes(fd.structure);
+      let templateFile;
+
+      if (isPool) {
+        if (!sys.poolTemplateFile) {
+          throw new Error('NO POOL TEMPLATE DEFINED. ASK ADMINISTRATOR.');
+        }
+        templateFile = sys.poolTemplateFile;
+      } else {
+        templateFile = sys.templateFile;
+      }
 
       if (mode === 'ps3') {
         const bytes    = await fillPS3(data);
