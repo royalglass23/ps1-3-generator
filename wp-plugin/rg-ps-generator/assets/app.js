@@ -55,7 +55,7 @@
     'viking-aluminium': {
       displayName:  'Viking Aluminium',
       templateFile: 'Juralco_Viking_Aluminium.pdf',
-      //poolTemplateFile: 'Juralco_Viking_Aluminium_POOL.pdf',
+      poolTemplateFile: 'Juralco_Viking_Aluminium_POOL.pdf',
       heights: {
         pool:    { height: '1.2', heightAboveFix: '1.2' },
         default: { height: '1.00', heightAboveFix: '1.00' },
@@ -73,7 +73,7 @@
     'jh-clamp': {
       displayName:  'JH Clamp',
       templateFile: 'Jur_JH_Clamp_Template.pdf',
-      //poolTemplateFile: 'Jur_JH_Clamp_POOL_Template.pdf',
+      poolTemplateFile: 'Jur_JH_Clamp_POOL_Template.pdf',
       heights: {
         pool:    { height: '1.2', heightAboveFix: '1.2' },
         default: { height: '1.00', heightAboveFix: '1.00' },
@@ -82,7 +82,7 @@
     'vista': {
       displayName:  'Vista',
       templateFile: 'Opus_Vista_Template.pdf',
-      //poolTemplateFile: 'Opus_Vista_POOL_Template.pdf',
+      poolTemplateFile: 'Opus_Vista_POOL_Template.pdf',
       heights: {
         pool:    { height: '1.2', heightAboveFix: '1.2' },
         default: { height: '1.00', heightAboveFix: '1.00' },
@@ -91,7 +91,7 @@
     'mp-sp14': {
       displayName:  'Mini Post SP14',
       templateFile: 'Opus_MP_SP14_Template.pdf',
-      //poolTemplateFile: 'Opus_MP_SP14_POOL_Template.pdf',
+      poolTemplateFile: 'Opus_MP_SP14_POOL_Template.pdf',
       heights: {
         pool:    { height: '1.2', heightAboveFix: '1.2' },
         default: { height: '1.00', heightAboveFix: '1.00' },
@@ -100,7 +100,7 @@
     'lugano': {
       displayName:  'Lugano',
       templateFile: 'Opus_Lugano_Template.pdf',
-      //poolTemplateFile: 'Opus_Lugano_POOL_Template.pdf',
+      poolTemplateFile: 'Opus_Lugano_POOL_Template.pdf',
       heights: {
         pool:    { height: '1.2', heightAboveFix: '1.2' },
         default: { height: '1.00', heightAboveFix: '1.00' },
@@ -109,7 +109,7 @@
     'unex-ascot': {
       displayName:  'Unex Ascot',
       templateFile: 'Unex_Ascot_Template.pdf',
-      //poolTemplateFile: 'Unex_Ascot_POOL_Template.pdf',
+      poolTemplateFile: 'Unex_Ascot_POOL_Template.pdf',
       heights: {
         pool:    { height: '1.2', heightAboveFix: '1.2' },
         default: { height: '1.00', heightAboveFix: '1.00' },
@@ -118,7 +118,7 @@
     'unex-metropolis': {
       displayName:  'Unex Metropolis',
       templateFile: 'Unex_Metropolis_Template.pdf',
-      //poolTemplateFile: 'Unex_Metropolis_POOL_Template.pdf',
+      poolTemplateFile: 'Unex_Metropolis_POOL_Template.pdf',
       heights: {
         pool:    { height: '1.2', heightAboveFix: '1.2' },
         default: { height: '1.00', heightAboveFix: '1.00' },
