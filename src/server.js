@@ -9,7 +9,7 @@ const path = require('path');
 const fs = require('fs');
 const helmet = require('helmet');
 
-const { SYSTEMS, getSystem, getHeights, buildDescription, buildShortDescription } = require('./systemConfig');
+const { SYSTEMS, POOL_STRUCTURES, getSystem, getHeights, buildDescription, buildShortDescription } = require('./systemConfig');
 const { fillPS1, fillPS3 } = require('./pdfFiller');
 const { logGeneration, getRecords } = require('./supabaseClient');
 
@@ -145,10 +145,16 @@ app.post('/api/generate', requireAuth, async (req, res) => {
       pdfBytes = await fillPS3(data);
       pdfFilename = sanitizeFilename(`${cleanAddress} - PS3.pdf`);
     } else {
-      const templateFile =
-        system === 'mini-post' && requiresGate
+      const isPool = POOL_STRUCTURES.includes(structure);
+      const templateFile = isPool
+        ? sys.poolTemplateFile
+        : system === 'mini-post' && requiresGate
           ? sys.gateTemplateFile
           : sys.templateFile;
+
+      if (isPool && (!templateFile || !fs.existsSync(path.join(__dirname, '..', 'templates', templateFile)))) {
+        return res.status(400).json({ error: 'NO POOL TEMPLATE DEFINED. ASK ADMINISTRATOR.' });
+      }
 
       pdfBytes = await fillPS1(templateFile, data, heights);
       pdfFilename = sanitizeFilename(`${cleanAddress} - PS1.pdf`);
