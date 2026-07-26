@@ -40,7 +40,7 @@ function sanitizeFilename(name) {
 const ALLOWED = {
   systems: Object.keys(SYSTEMS),
   substrates: ['Timber', 'Concrete', 'Steel'],
-  structures: ['Deck', 'Balcony', 'Pool Area', 'Pool Fence', 'Stair Area', 'Landing', 'Stair and Balcony Area'],
+  structures: ['Deck', 'Balcony', 'Pool', 'Pool Area', 'Pool Fence', 'Stair Area', 'Landing', 'Stair and Balcony Area'],
   locations: ['Internal', 'External'],
   newOrExisting: ['New', 'Existing'],
   types: ['ps1', 'ps3'],

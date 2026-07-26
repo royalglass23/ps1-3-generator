@@ -36,7 +36,7 @@ const SYSTEMS = {
   }
 };
 
-const POOL_STRUCTURES = ['Pool Area', 'Pool Fence'];
+const POOL_STRUCTURES = ['Pool', 'Pool Area', 'Pool Fence'];
 
 function getSystem(systemKey) {
   const sys = SYSTEMS[systemKey];
