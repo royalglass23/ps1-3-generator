@@ -4,6 +4,15 @@
   // Injected by wp_localize_script
   const AJAX  = RGPSConfig.ajaxUrl;
   const NONCE = RGPSConfig.nonce;
+  let unicodeFontBytes;
+
+  async function getUnicodeFontBytes() {
+    if (unicodeFontBytes) return unicodeFontBytes;
+    const response = await fetch(RGPSConfig.fontUrl);
+    if (!response.ok) throw new Error('Unicode PDF font could not be loaded.');
+    unicodeFontBytes = new Uint8Array(await response.arrayBuffer());
+    return unicodeFontBytes;
+  }
 
   // ── System config (mirrors systemConfig.js) ────────────────────────
   const SYSTEMS = {
@@ -208,6 +217,8 @@
     const { PDFDocument } = PDFLib;
     const templateBytes   = await fetchTemplate(templateFile);
     const pdf  = await PDFDocument.load(templateBytes);
+    pdf.registerFontkit(fontkit);
+    const unicodeFont = await pdf.embedFont(await getUnicodeFontBytes(), { subset: true });
     const form = pdf.getForm();
     const date = today();
 
@@ -254,7 +265,7 @@
     setCheck('Direct',      true);
     setCheck('Cont',        true);
 
-    form.updateFieldAppearances();
+    form.updateFieldAppearances(unicodeFont);
     form.flatten();
     return pdf.save();
   }
@@ -263,6 +274,8 @@
     const { PDFDocument } = PDFLib;
     const templateBytes   = await fetchTemplate('PS3_Template.pdf');
     const pdf  = await PDFDocument.load(templateBytes);
+    pdf.registerFontkit(fontkit);
+    const unicodeFont = await pdf.embedFont(await getUnicodeFontBytes(), { subset: true });
     const form = pdf.getForm();
 
     function setText(name, value) {
@@ -292,7 +305,7 @@
     setCheck('GlassTB', true);
     setCheck('PS1TB',   true);
 
-    form.updateFieldAppearances();
+    form.updateFieldAppearances(unicodeFont);
     form.flatten();
     return pdf.save();
   }
