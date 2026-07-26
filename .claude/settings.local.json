@@ -4,7 +4,22 @@
       "Bash(node -e \"require\\('./src/server.js'\\)\")",
       "Bash(node -e ' *)",
       "Bash(python3 *)",
-      "Bash(node *)"
+      "Bash(node *)",
+      "Bash(git checkout *)",
+      "Bash(php -l wp-plugin/rg-ps-generator/rg-ps-generator.php)",
+      "Bash(git add *)",
+      "Bash(git commit -m ' *)",
+      "Bash(git push *)",
+      "Bash(git pull *)",
+      "Bash(git merge *)",
+      "Bash(rm -f wp-plugin/rg-ps-generator/templates/Juralco_Viking_Aluminium.pdf wp-plugin/rg-ps-generator/templates/Juralco_Viking_Glass.pdf)",
+      "Bash(echo \"exit: $?\")",
+      "Bash(python -c \"import pypdf; print\\('pypdf', pypdf.__version__\\)\")",
+      "Bash(python -c \"import pdfminer; print\\('pdfminer ok'\\)\")",
+      "Bash(pip install *)",
+      "Bash(python -m pip install pypdf -q)",
+      "Bash(python -)",
+      "Bash(PYTHONIOENCODING=utf-8 PYTHONUTF8=1 python -)"
     ]
   }
 }

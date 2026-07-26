@@ -139,14 +139,14 @@
   }
 
   function buildDescription(thickness, glassType, structure, newOrExisting, location,systemKey) {
-    const isPool  = POOL_STRUCTURES.includes(structure);
-    const product = isPool ? 'Pool Fencing' : 'Balustrade';
-    const suffix  = product + ' installation for ' + newOrExisting + ' ' + location + ' ' + structure + ' area using ' + getSystem(systemKey).displayName + ' System';
+    //const isPool  = POOL_STRUCTURES.includes(structure);
+    //const product = isPool ? 'Pool Fencing' : 'Balustrade';
+    const suffix  = ' installation for ' + newOrExisting + ' ' + location + ' ' + structure + ' area using ' + getSystem(systemKey).displayName + ' System';
     // 'None' = aluminium baluster (no glass): drop thickness + glass word.
     if (glassType === 'None') {
       return 'Aluminium ' + suffix;
     }
-    return thickness + 'mm ' + glassType + ' ' + suffix;
+    return thickness + 'mm ' + glassType + 'Glass ' + suffix;
   }
 
   function buildShortDescription(structure, systemKey) {

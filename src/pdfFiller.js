@@ -3,8 +3,32 @@
 const fs = require('fs');
 const path = require('path');
 const { PDFDocument } = require('pdf-lib');
+const fontkit = require('@pdf-lib/fontkit');
 
 const TEMPLATES_DIR = path.join(__dirname, '..', 'templates');
+const FONT_CANDIDATES = [
+  process.env.PDF_FONT_PATH,
+  path.join(__dirname, '..', 'fonts', 'Arial.ttf'),
+  'C:\\Windows\\Fonts\\arial.ttf',
+  '/usr/share/fonts/truetype/msttcorefonts/Arial.ttf',
+  '/usr/share/fonts/truetype/liberation2/LiberationSans-Regular.ttf'
+].filter(Boolean);
+
+let unicodeFontBytes;
+
+function getUnicodeFontBytes() {
+  if (unicodeFontBytes) return unicodeFontBytes;
+
+  const fontPath = FONT_CANDIDATES.find(candidate => fs.existsSync(candidate));
+  if (!fontPath) {
+    throw new Error(
+      'No Unicode PDF font found. Set PDF_FONT_PATH to a readable .ttf or .otf font file.'
+    );
+  }
+
+  unicodeFontBytes = fs.readFileSync(fontPath);
+  return unicodeFontBytes;
+}
 
 function today() {
   const d = new Date();
@@ -34,6 +58,8 @@ function setCheck(form, name, checked) {
 async function fillPS1(templateFile, data, heights) {
   const templateBytes = fs.readFileSync(path.join(TEMPLATES_DIR, templateFile));
   const pdf = await PDFDocument.load(templateBytes);
+  pdf.registerFontkit(fontkit);
+  const unicodeFont = await pdf.embedFont(getUnicodeFontBytes(), { subset: true });
   const form = pdf.getForm();
   const date = today();
 
@@ -62,6 +88,7 @@ async function fillPS1(templateFile, data, heights) {
   setCheck(form, 'Direct',      true);
   setCheck(form, 'Cont',        false);
 
+  form.updateFieldAppearances(unicodeFont);
   form.flatten();
   return pdf.save();
 }
@@ -69,6 +96,8 @@ async function fillPS1(templateFile, data, heights) {
 async function fillPS3(data) {
   const templateBytes = fs.readFileSync(path.join(TEMPLATES_DIR, 'PS3_Template.pdf'));
   const pdf = await PDFDocument.load(templateBytes);
+  pdf.registerFontkit(fontkit);
+  const unicodeFont = await pdf.embedFont(getUnicodeFontBytes(), { subset: true });
   const form = pdf.getForm();
 
   setText(form, 'BC',           data.bcNumber || '');
@@ -84,6 +113,7 @@ async function fillPS3(data) {
   setCheck(form, 'GlassTB', true);
   setCheck(form, 'PS1TB',   true);
 
+  form.updateFieldAppearances(unicodeFont);
   form.flatten();
   return pdf.save();
 }
