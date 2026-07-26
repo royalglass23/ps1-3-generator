@@ -125,7 +125,7 @@ function rgps_settings_page() {
 add_shortcode( 'rg_ps_generator', 'rgps_shortcode' );
 function rgps_shortcode() {
     wp_enqueue_script( 'pdf-lib',   'https://unpkg.com/pdf-lib@1.17.1/dist/pdf-lib.min.js', [], null, true );
-    wp_enqueue_script( 'rgps-app',  RGPS_URL . 'assets/app.js', [ 'pdf-lib' ], '1.0.0', true );
+    wp_enqueue_script( 'rgps-app',  RGPS_URL . 'assets/app.js', [ 'pdf-lib' ], '1.0.1', true );
     wp_enqueue_style(  'rgps-style', RGPS_URL . 'assets/style.css', [], '1.0.0' );
 
     $places_key = get_option( 'rgps_google_places_key', '' );
