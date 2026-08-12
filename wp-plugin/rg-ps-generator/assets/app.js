@@ -723,12 +723,16 @@
       document.querySelector('input[name="rgps-requiresGate"][value="Yes"]').checked = isPool;
       document.querySelector('input[name="rgps-requiresGate"][value="No"]').checked  = !isPool;
     });
-    // Laminated glass normally uses 13.52mm. Set that default when selected,
-    // while keeping the thickness dropdown available for a manual override.
+    // Apply the usual thickness for each glass type when selected, while
+    // keeping the thickness dropdown available for a manual override.
     document.querySelectorAll('input[name="rgps-glassType"]').forEach(radio => {
       radio.addEventListener('change', function () {
-        if (this.checked && this.value === 'Laminated') {
-          el('rgps-thickness').value = '13.52';
+        const defaultThickness = {
+          Toughened: '12',
+          Laminated: '13.52',
+        }[this.value];
+        if (this.checked && defaultThickness) {
+          el('rgps-thickness').value = defaultThickness;
         }
       });
     });
