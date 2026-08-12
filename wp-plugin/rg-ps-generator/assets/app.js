@@ -182,6 +182,16 @@
 
   function el(id) { return document.getElementById(id); }
 
+  const GLASS_THICKNESS_DEFAULTS = {
+    Toughened: '12',
+    Laminated: '13.52',
+  };
+
+  function applyGlassThicknessDefault(glassType) {
+    const defaultThickness = GLASS_THICKNESS_DEFAULTS[glassType];
+    if (defaultThickness) el('rgps-thickness').value = defaultThickness;
+  }
+
   // ── Session token (localStorage) ──────────────────────────────────
   const TOKEN_KEY = 'rgps_token';
   function getToken()   { return localStorage.getItem(TOKEN_KEY) || ''; }
@@ -726,21 +736,20 @@
     // Apply the usual thickness for each glass type when selected, while
     // keeping the thickness dropdown available for a manual override.
     document.querySelectorAll('input[name="rgps-glassType"]').forEach(radio => {
-      radio.addEventListener('change', function () {
-        const defaultThickness = {
-          Toughened: '12',
-          Laminated: '13.52',
-        }[this.value];
-        if (this.checked && defaultThickness) {
-          el('rgps-thickness').value = defaultThickness;
-        }
-      });
+      const applySelectedGlassThicknessDefault = function () {
+        if (this.checked) applyGlassThicknessDefault(this.value);
+      };
+      radio.addEventListener('click', applySelectedGlassThicknessDefault);
+      radio.addEventListener('change', applySelectedGlassThicknessDefault);
     });
     // Aluminium baluster systems carry no glass: auto-select "Not Glass".
     el('rgps-system').addEventListener('change', function () {
       const glassVal = this.value === 'viking-aluminium' ? 'None' : 'Toughened';
       const radio = document.querySelector('input[name="rgps-glassType"][value="' + glassVal + '"]');
-      if (radio) radio.checked = true;
+      if (radio) {
+        radio.checked = true;
+        applyGlassThicknessDefault(glassVal);
+      }
     });
 
     // Pagination controls
