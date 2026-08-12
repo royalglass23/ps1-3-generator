@@ -126,7 +126,7 @@ add_shortcode( 'rg_ps_generator', 'rgps_shortcode' );
 function rgps_shortcode() {
     wp_enqueue_script( 'pdf-lib',     'https://unpkg.com/pdf-lib@1.17.1/dist/pdf-lib.min.js', [], null, true );
     wp_enqueue_script( 'pdf-fontkit', 'https://unpkg.com/@pdf-lib/fontkit@1.1.1/dist/fontkit.umd.min.js', [], null, true );
-    wp_enqueue_script( 'rgps-app',    RGPS_URL . 'assets/app.js', [ 'pdf-lib', 'pdf-fontkit' ], '1.0.3', true );
+    wp_enqueue_script( 'rgps-app',    RGPS_URL . 'assets/app.js', [ 'pdf-lib', 'pdf-fontkit' ], '1.0.4', true );
     wp_enqueue_style(  'rgps-style', RGPS_URL . 'assets/style.css', [], '1.0.0' );
 
     $places_key = get_option( 'rgps_google_places_key', '' );
@@ -250,6 +250,7 @@ function rgps_shortcode() {
               <select id="rgps-thickness">
                 <option value="12" selected>12mm</option>
                 <option value="13.2">13.2mm</option>
+                <option value="13.52">13.52mm</option>
                 <option value="15">15mm</option>
               </select>
             </div>
@@ -422,7 +423,7 @@ function rgps_handle_log() {
     $allowed_structures = [ 'Deck', 'Balcony', 'Pool', 'Pool Fence', 'Stair', 'Landing', 'Stair and Landing', 'Stair and Balcony' ];
     $allowed_locations  = [ 'Internal', 'External', 'Internal and External' ];
     $allowed_noe        = [ 'New', 'Existing' ];
-    $allowed_thick      = [ '12', '13.2', '15' ];
+    $allowed_thick      = [ '12', '13.2', '13.52', '15' ];
     $allowed_glass      = [ 'Toughened', 'Laminated', 'None' ];
 
     $system_type = sanitize_text_field( $_POST['system_type']     ?? '' );

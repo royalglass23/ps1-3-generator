@@ -723,6 +723,15 @@
       document.querySelector('input[name="rgps-requiresGate"][value="Yes"]').checked = isPool;
       document.querySelector('input[name="rgps-requiresGate"][value="No"]').checked  = !isPool;
     });
+    // Laminated glass normally uses 13.52mm. Set that default when selected,
+    // while keeping the thickness dropdown available for a manual override.
+    document.querySelectorAll('input[name="rgps-glassType"]').forEach(radio => {
+      radio.addEventListener('change', function () {
+        if (this.checked && this.value === 'Laminated') {
+          el('rgps-thickness').value = '13.52';
+        }
+      });
+    });
     // Aluminium baluster systems carry no glass: auto-select "Not Glass".
     el('rgps-system').addEventListener('change', function () {
       const glassVal = this.value === 'viking-aluminium' ? 'None' : 'Toughened';
