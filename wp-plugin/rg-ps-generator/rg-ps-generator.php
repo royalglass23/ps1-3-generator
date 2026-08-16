@@ -393,9 +393,9 @@ function rgps_handle_template() {
         'Opus_Lugano_Template.pdf',
         'Opus_Lugano_POOL_Template.pdf',
         'Unex_Ascot_Template.pdf',
-        //'Unex_Ascot_POOL_Template.pdf',
+        'Unex_Ascot_POOL_Template.pdf',
         'Unex_Metropolis_Template.pdf',
-        //'Unex_Metropolis_POOL_Template.pdf',
+        'Unex_Metropolis_POOL_Template.pdf',
     ];
 
     $name = sanitize_file_name( $_GET['name'] ?? '' );
