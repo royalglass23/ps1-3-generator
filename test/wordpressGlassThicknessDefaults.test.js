@@ -124,7 +124,7 @@ test('system selection applies the Toughened 12mm default', () => {
   assert.equal(thickness.value, '12');
 });
 
-test('Aluminium and Unex systems default to Not Glass while allowing a glass override', () => {
+test('Aluminium and Unex Ascot default to Not Glass while allowing a glass override', () => {
   const { getElement, toughened, none, glassRadios } = loadApp();
   const thickness = getElement('rgps-thickness');
   const system = getElement('rgps-system');
@@ -133,7 +133,7 @@ test('Aluminium and Unex systems default to Not Glass while allowing a glass ove
   clickRadio(none, glassRadios);
   assert.equal(thickness.value, '');
 
-  for (const systemKey of ['viking-aluminium', 'unex-ascot', 'unex-metropolis']) {
+  for (const systemKey of ['viking-aluminium', 'unex-ascot']) {
     thickness.value = '15';
     system.value = systemKey;
     system.listeners.change.call(system);
@@ -144,6 +144,21 @@ test('Aluminium and Unex systems default to Not Glass while allowing a glass ove
     assert.equal(toughened.checked, true);
     assert.equal(thickness.value, '12');
   }
+});
+
+test('Unex Metropolis defaults to Toughened 12mm glass', () => {
+  const { getElement, toughened, none } = loadApp();
+  const thickness = getElement('rgps-thickness');
+  const system = getElement('rgps-system');
+  toughened.checked = false;
+  none.checked = true;
+  thickness.value = '';
+  system.value = 'unex-metropolis';
+
+  system.listeners.change.call(system);
+
+  assert.equal(toughened.checked, true);
+  assert.equal(thickness.value, '12');
 });
 
 test('Aluminium descriptions distinguish pool fencing from balustrades', () => {

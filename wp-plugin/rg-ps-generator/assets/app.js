@@ -136,7 +136,7 @@
   };
 
   const POOL_STRUCTURES = ['Pool', 'Pool Area', 'Pool Fence'];
-  const NON_GLASS_SYSTEMS = ['viking-aluminium', 'unex-ascot', 'unex-metropolis'];
+  const NON_GLASS_SYSTEMS = ['viking-aluminium', 'unex-ascot'];
 
   function getSystem(key) {
     const s = SYSTEMS[key];
