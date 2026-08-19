@@ -63,7 +63,7 @@ function loadApp() {
     RGPSConfig: { ajaxUrl: '/ajax', nonce: 'test', fontUrl: '/font' },
     document,
     localStorage: { getItem() { return null; }, setItem() {}, removeItem() {} },
-    window: {},
+    window: { RGPS_TEST_API: {} },
     console,
     URLSearchParams,
     setTimeout,
@@ -73,7 +73,7 @@ function loadApp() {
   vm.runInNewContext(fs.readFileSync(APP_PATH, 'utf8'), context);
   ready();
 
-  return { getElement, toughened, laminated, glassRadios };
+  return { getElement, toughened, laminated, none, glassRadios, testApi: context.window.RGPS_TEST_API };
 }
 
 function clickRadio(radio, radios) {
@@ -122,4 +122,39 @@ test('system selection applies the Toughened 12mm default', () => {
 
   assert.equal(toughened.checked, true);
   assert.equal(thickness.value, '12');
+});
+
+test('Aluminium and Unex systems default to Not Glass while allowing a glass override', () => {
+  const { getElement, toughened, none, glassRadios } = loadApp();
+  const thickness = getElement('rgps-thickness');
+  const system = getElement('rgps-system');
+  thickness.value = '12';
+
+  clickRadio(none, glassRadios);
+  assert.equal(thickness.value, '');
+
+  for (const systemKey of ['viking-aluminium', 'unex-ascot', 'unex-metropolis']) {
+    thickness.value = '15';
+    system.value = systemKey;
+    system.listeners.change.call(system);
+    assert.equal(none.checked, true);
+    assert.equal(thickness.value, '');
+
+    clickRadio(toughened, glassRadios);
+    assert.equal(toughened.checked, true);
+    assert.equal(thickness.value, '12');
+  }
+});
+
+test('Aluminium descriptions distinguish pool fencing from balustrades', () => {
+  const { testApi } = loadApp();
+
+  assert.equal(
+    testApi.buildDescription('', 'None', 'Pool', 'New', 'External', 'viking-aluminium'),
+    'Aluminium pool fence installation for New External Pool area using Viking Aluminium System'
+  );
+  assert.equal(
+    testApi.buildDescription('', 'None', 'Deck', 'New', 'External', 'viking-aluminium'),
+    'Aluminium balustrade installation for New External Deck area using Viking Aluminium System'
+  );
 });

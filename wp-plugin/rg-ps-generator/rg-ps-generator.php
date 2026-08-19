@@ -126,7 +126,7 @@ add_shortcode( 'rg_ps_generator', 'rgps_shortcode' );
 function rgps_shortcode() {
     wp_enqueue_script( 'pdf-lib',     'https://unpkg.com/pdf-lib@1.17.1/dist/pdf-lib.min.js', [], null, true );
     wp_enqueue_script( 'pdf-fontkit', 'https://unpkg.com/@pdf-lib/fontkit@1.1.1/dist/fontkit.umd.min.js', [], null, true );
-    wp_enqueue_script( 'rgps-app',    RGPS_URL . 'assets/app.js', [ 'pdf-lib', 'pdf-fontkit' ], '1.0.5', true );
+    wp_enqueue_script( 'rgps-app',    RGPS_URL . 'assets/app.js', [ 'pdf-lib', 'pdf-fontkit' ], '1.0.9', true );
     wp_enqueue_style(  'rgps-style', RGPS_URL . 'assets/style.css', [], '1.0.0' );
 
     $places_key = get_option( 'rgps_google_places_key', '' );
@@ -248,6 +248,7 @@ function rgps_shortcode() {
             <div class="rgps-field">
               <label for="rgps-thickness">Glass Thickness</label>
               <select id="rgps-thickness">
+                <option value="">Blank (not glass)</option>
                 <option value="12" selected>12mm</option>
                 <option value="13.2">13.2mm</option>
                 <option value="13.52">13.52mm</option>
@@ -431,7 +432,7 @@ function rgps_handle_log() {
     $structure   = sanitize_text_field( $_POST['structure']       ?? '' );
     $location    = sanitize_text_field( $_POST['location']        ?? '' );
     $noe         = sanitize_text_field( $_POST['new_or_existing'] ?? '' );
-    $thickness   = sanitize_text_field( $_POST['thickness']       ?? '12' );
+    $thickness   = sanitize_text_field( $_POST['thickness']       ?? '' );
     $glass_type  = sanitize_text_field( $_POST['glass_type']      ?? 'Toughened' );
 
     if ( ! in_array( $system_type, $allowed_systems,    true ) ) wp_send_json( [ 'ok' => false ], 400 );
@@ -439,8 +440,12 @@ function rgps_handle_log() {
     if ( ! in_array( $structure,   $allowed_structures, true ) ) wp_send_json( [ 'ok' => false ], 400 );
     if ( ! in_array( $location,    $allowed_locations,  true ) ) wp_send_json( [ 'ok' => false ], 400 );
     if ( ! in_array( $noe,         $allowed_noe,        true ) ) wp_send_json( [ 'ok' => false ], 400 );
-    if ( ! in_array( $thickness,   $allowed_thick,      true ) ) $thickness = '12';
     if ( ! in_array( $glass_type,  $allowed_glass,      true ) ) $glass_type = 'Toughened';
+    if ( $glass_type === 'None' ) {
+        $thickness = '';
+    } elseif ( ! in_array( $thickness, $allowed_thick, true ) ) {
+        $thickness = '12';
+    }
 
     $wpdb->insert( $wpdb->prefix . 'rgps_records', [
         'created_at'      => current_time( 'mysql' ),
