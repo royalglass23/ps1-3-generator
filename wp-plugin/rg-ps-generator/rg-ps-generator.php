@@ -383,6 +383,7 @@ function rgps_handle_template() {
         'Top_Channel_PS1_POOL_Template.pdf',
         'PS3_Template.pdf',
         'Juralco_Viking_Aluminium.pdf',
+        'Juralco_Viking_Aluminium_POOL.pdf',
         'Juralco_Viking_Glass.pdf',
         'Juralco_Viking_Glass_POOL.pdf',
         'Jur_JH_Clamp_Template.pdf',
