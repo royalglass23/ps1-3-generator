@@ -136,6 +136,7 @@
   };
 
   const POOL_STRUCTURES = ['Pool', 'Pool Area', 'Pool Fence'];
+  const NON_GLASS_SYSTEMS = ['viking-aluminium', 'unex-ascot', 'unex-metropolis'];
 
   function getSystem(key) {
     const s = SYSTEMS[key];
@@ -150,15 +151,17 @@
   }
 
   function buildDescription(thickness, glassType, structure, newOrExisting, location,systemKey) {
-    //const isPool  = POOL_STRUCTURES.includes(structure);
-    //const product = isPool ? 'Pool Fencing' : 'Balustrade';
     const suffix  = ' installation for ' + newOrExisting + ' ' + location + ' ' + structure + ' area using ' + getSystem(systemKey).displayName + ' System';
-    // 'None' = aluminium baluster (no glass): drop thickness + glass word.
+    // Aluminium systems have no glass, but retain the shared installation context.
     if (glassType === 'None') {
-      return 'Aluminium ' + suffix;
+      const product = POOL_STRUCTURES.includes(structure) ? 'Aluminium pool fence' : 'Aluminium balustrade';
+      return product + suffix;
     }
     return thickness + 'mm ' + glassType + ' Glass ' + suffix;
   }
+
+  // Available only to the browserless regression tests; not created in production.
+  if (window.RGPS_TEST_API) window.RGPS_TEST_API.buildDescription = buildDescription;
 
   function buildShortDescription(structure, systemKey) {
     return 'New ' + structure + ' ' + getSystem(systemKey).displayName + ' Glass Balustrade';
@@ -185,11 +188,13 @@
   const GLASS_THICKNESS_DEFAULTS = {
     Toughened: '12',
     Laminated: '13.52',
+    None: '',
   };
 
   function applyGlassThicknessDefault(glassType) {
-    const defaultThickness = GLASS_THICKNESS_DEFAULTS[glassType];
-    if (defaultThickness) el('rgps-thickness').value = defaultThickness;
+    if (Object.hasOwn(GLASS_THICKNESS_DEFAULTS, glassType)) {
+      el('rgps-thickness').value = GLASS_THICKNESS_DEFAULTS[glassType];
+    }
   }
 
   // ── Session token (localStorage) ──────────────────────────────────
@@ -259,7 +264,7 @@
     setMultilineText('Description02',  data.longDescription);
     setText('LotDescription02', data.lotDescription || '');
     setText('Structure02',     data.structure);
-    setText('Thickness',       data.thickness || '12');
+    setText('Thickness',       data.thickness);
     setText('Height',          heights.height);
     setText('HeightAboveFix',  heights.heightAboveFix);
 
@@ -743,8 +748,9 @@
       radio.addEventListener('change', applySelectedGlassThicknessDefault);
     });
     // Aluminium baluster systems carry no glass: auto-select "Not Glass".
+    // The radio remains editable so staff can override the default when required.
     el('rgps-system').addEventListener('change', function () {
-      const glassVal = this.value === 'viking-aluminium' ? 'None' : 'Toughened';
+      const glassVal = NON_GLASS_SYSTEMS.includes(this.value) ? 'None' : 'Toughened';
       const radio = document.querySelector('input[name="rgps-glassType"][value="' + glassVal + '"]');
       if (radio) {
         radio.checked = true;
