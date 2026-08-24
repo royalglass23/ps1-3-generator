@@ -137,6 +137,15 @@
 
   const POOL_STRUCTURES = ['Pool', 'Pool Area', 'Pool Fence'];
   const NON_GLASS_SYSTEMS = ['viking-aluminium', 'unex-ascot'];
+  const MAX_SCOPE_ROWS = 5;
+  const SCOPE_STRUCTURES = [
+    { value: 'Deck', label: 'Deck' },
+    { value: 'Balcony', label: 'Balcony' },
+    { value: 'Stair', label: 'Stair' },
+    { value: 'Landing', label: 'Landing' },
+    { value: 'Pool', label: 'Pool Area' },
+  ];
+  let scopeRows = [{ location: '', structures: [] }];
 
   function getSystem(key) {
     const s = SYSTEMS[key];
@@ -150,21 +159,62 @@
     return s.heights[bucket];
   }
 
-  function buildDescription(thickness, glassType, structure, newOrExisting, location,systemKey) {
-    const suffix  = ' installation for ' + newOrExisting + ' ' + location + ' ' + structure + ' area using ' + getSystem(systemKey).displayName + ' System';
+  function getScopeState(rows) {
+    const normalisedRows = rows.map(row => ({
+      location: row.location,
+      structures: [...new Set(row.structures)].filter(value => SCOPE_STRUCTURES.some(option => option.value === value)),
+    }));
+    const selectedRows = normalisedRows.filter(row => row.location && row.structures.length);
+    const locations = [...new Set(selectedRows.map(row => row.location))];
+    const structureLabels = selectedRows.map(row => scopeStructureLabel(row.structures));
+    const combinedAreaList = selectedRows
+      .map((row, index) => row.location + ' ' + structureLabels[index] + ' Area')
+      .join(' and ');
+    const poolSelected = normalisedRows.some(row => row.structures.includes('Pool'));
+    const poolExclusive = !poolSelected || (normalisedRows.length === 1 && normalisedRows[0].structures.length === 1);
+
+    return {
+      rows: normalisedRows,
+      combinedAreaList,
+      location: locations.length === 2 ? 'Internal and External' : (locations[0] || ''),
+      structure: structureLabels.join(' and '),
+      isPool: poolSelected,
+      canSelectPool: normalisedRows.length === 1 && normalisedRows[0].structures.every(value => value === 'Pool'),
+      canAddScope: !poolSelected && normalisedRows.length < MAX_SCOPE_ROWS,
+      isComplete: normalisedRows.every(row => row.location && row.structures.length),
+      isValid: normalisedRows.every(row => row.location && row.structures.length) && poolExclusive,
+    };
+  }
+
+  function buildScopeSummary(rows) {
+    const state = getScopeState(rows);
+    return {
+      combinedAreaList: state.combinedAreaList,
+      location: state.location,
+      structure: state.structure,
+      isPool: state.isPool,
+      canAddScope: state.canAddScope,
+    };
+  }
+
+  function buildDescription(thickness, glassType, scope, newOrExisting, systemKey) {
+    const suffix  = ' installation for ' + scope.combinedAreaList + ' using ' + getSystem(systemKey).displayName + ' System';
     // Aluminium systems have no glass, but retain the shared installation context.
     if (glassType === 'None') {
-      const product = POOL_STRUCTURES.includes(structure) ? 'Aluminium pool fence' : 'Aluminium balustrade';
-      return product + suffix;
+      const product = scope.isPool ? 'Aluminium pool fence' : 'Aluminium balustrade';
+      return newOrExisting + ' ' + product + suffix;
     }
-    return thickness + 'mm ' + glassType + ' Glass ' + suffix;
+    return newOrExisting + ' ' + thickness + 'mm ' + glassType + ' Glass' + suffix;
   }
 
   // Available only to the browserless regression tests; not created in production.
-  if (window.RGPS_TEST_API) window.RGPS_TEST_API.buildDescription = buildDescription;
+  if (window.RGPS_TEST_API) {
+    window.RGPS_TEST_API.buildDescription = buildDescription;
+    window.RGPS_TEST_API.buildScopeSummary = buildScopeSummary;
+  }
 
-  function buildShortDescription(structure, systemKey) {
-    return 'New ' + structure + ' ' + getSystem(systemKey).displayName + ' Glass Balustrade';
+  function buildShortDescription(scope, systemKey) {
+    return 'New ' + scope.combinedAreaList + ' ' + getSystem(systemKey).displayName + ' Glass Balustrade';
   }
 
   // ── Helpers ────────────────────────────────────────────────────────
@@ -184,6 +234,66 @@
   }
 
   function el(id) { return document.getElementById(id); }
+
+  function scopeStructureLabel(structures) {
+    return [...new Set(structures)]
+      .filter(value => SCOPE_STRUCTURES.some(option => option.value === value))
+      .join(' and ');
+  }
+
+  function renderScopeRows() {
+    const container = el('rgps-scope-rows');
+    const addButton = el('rgps-btn-add-scope');
+    if (!container || !addButton) return;
+
+    const scope = getScopeState(scopeRows);
+    const poolSelectable = scope.canSelectPool;
+    container.innerHTML = scopeRows.map((row, index) => {
+      const locationName = 'rgps-scope-location-' + index;
+      const structureInputs = SCOPE_STRUCTURES.map(option => {
+        const checked = row.structures.includes(option.value) ? ' checked' : '';
+        const disabled = option.value === 'Pool' && !poolSelectable ? ' disabled' : '';
+        return '<label><input type="checkbox" data-scope-structure value="' + option.value + '"' + checked + disabled + ' /> ' + option.label + '</label>';
+      }).join('');
+      const removeButton = scopeRows.length > 1
+        ? '<button type="button" class="rgps-btn rgps-btn-remove-scope" data-remove-scope>Remove</button>'
+        : '';
+      return '<fieldset class="rgps-scope-row" data-scope-index="' + index + '">' +
+        '<div class="rgps-scope-row-header"><span class="rgps-scope-row-title">Area ' + (index + 1) + '</span>' + removeButton + '</div>' +
+        '<div class="rgps-scope-row-grid">' +
+          '<div class="rgps-field"><label>Location</label><div class="rgps-radio-group">' +
+            '<label><input type="radio" name="' + locationName + '" data-scope-location value="Internal"' + (row.location === 'Internal' ? ' checked' : '') + ' /> Internal</label>' +
+            '<label><input type="radio" name="' + locationName + '" data-scope-location value="External"' + (row.location === 'External' ? ' checked' : '') + ' /> External</label>' +
+          '</div></div>' +
+          '<div class="rgps-field"><label>Structure types</label><div class="rgps-scope-structure-list">' + structureInputs + '</div></div>' +
+        '</div></fieldset>';
+    }).join('');
+
+    addButton.disabled = !scope.canAddScope;
+    const isPool = scope.isPool;
+    document.querySelector('input[name="rgps-requiresGate"][value="Yes"]').checked = isPool;
+    document.querySelector('input[name="rgps-requiresGate"][value="No"]').checked = !isPool;
+  }
+
+  function updateScopeRow(target) {
+    const rowElement = target.closest('[data-scope-index]');
+    if (!rowElement) return;
+    const index = Number(rowElement.dataset.scopeIndex);
+    const row = scopeRows[index];
+    if (!row) return;
+
+    if (target.hasAttribute('data-scope-location')) {
+      row.location = target.value;
+    } else if (target.hasAttribute('data-scope-structure')) {
+      if (target.checked) {
+        row.structures = target.value === 'Pool' ? ['Pool'] : row.structures.filter(value => value !== 'Pool').concat(target.value);
+      } else {
+        row.structures = row.structures.filter(value => value !== target.value);
+      }
+      if (row.structures.includes('Pool')) scopeRows = [row];
+    }
+    renderScopeRows();
+  }
 
   const GLASS_THICKNESS_DEFAULTS = {
     Toughened: '12',
@@ -309,7 +419,7 @@
 
     setText('BC',           data.bcNumber || '');
     setText('Address02',    data.address);
-    setMultilineText('Description3', data.location + ' ' + data.structure);
+    setMultilineText('Description3', data.combinedAreaList || (data.location + ' ' + data.structure));
     setMultilineText('Description2', data.longDescription);
     setText('Date03',       today());
     setText('Legal',        data.lotDescription || '');
@@ -352,7 +462,7 @@
 
   // ── Read form values ───────────────────────────────────────────────
   function formData() {
-    const locationChecks = Array.from(document.querySelectorAll('input[name="rgps-location"]:checked')).map(cb => cb.value);
+    const scope = getScopeState(scopeRows);
     return {
       clientName:     el('rgps-clientName').value.trim(),
       address:        el('rgps-address').value.trim(),
@@ -361,8 +471,12 @@
       thickness:      el('rgps-thickness').value,
       system:         el('rgps-system').value,
       substrate:      el('rgps-substrate').value,
-      structure:      el('rgps-structure').value,
-      location:      locationChecks.length === 2 ? 'Internal and External' : (locationChecks[0] || 'External'),
+      scopeRows:      scope.rows,
+      scope,
+      combinedAreaList: scope.combinedAreaList,
+      structure:      scope.structure,
+      location:       scope.location,
+      isPool:         scope.isPool,
       glassType:     document.querySelector('input[name="rgps-glassType"]:checked')?.value || 'Toughened',
       newOrExisting: document.querySelector('input[name="rgps-newOrExisting"]:checked').value || 'New',
     };
@@ -385,6 +499,16 @@
       el('rgps-address').focus();
       return;
     }
+    if (!fd.scope.isComplete) {
+      status.className = 'rgps-status-error';
+      status.textContent = 'Choose a location and at least one structure type for every area.';
+      return;
+    }
+    if (!fd.scope.isValid) {
+      status.className = 'rgps-status-error';
+      status.textContent = 'A Pool Area must be the only area in this document.';
+      return;
+    }
 
     const btns = document.querySelectorAll('#rgps-app .rgps-btn');
     btns.forEach(b => b.disabled = true);
@@ -393,11 +517,11 @@
 
     try {
       const sys     = getSystem(fd.system);
-      const heights = getHeights(fd.system, fd.structure);
+      const heights = getHeights(fd.system, fd.isPool ? 'Pool' : fd.structure);
       const data    = {
         ...fd,
-        longDescription: buildDescription(fd.thickness, fd.glassType, fd.structure, fd.newOrExisting, fd.location, fd.system),
-        shortDescription: buildShortDescription(fd.structure, fd.system),
+        longDescription: buildDescription(fd.thickness, fd.glassType, fd.scope, fd.newOrExisting, fd.system),
+        shortDescription: buildShortDescription(fd.scope, fd.system),
       };
 
       const logFields = {
@@ -407,14 +531,14 @@
         lot_description: fd.lotDescription,
         system_type:     fd.system,
         substrate:       fd.substrate,
-        structure:       fd.structure,
+        structure:       fd.scopeRows.length === 1 && fd.scopeRows[0].structures.length === 1 ? fd.scopeRows[0].structures[0] : 'Multiple scopes',
         location:        fd.location,
         new_or_existing: fd.newOrExisting,
         thickness:       fd.thickness,
         glass_type:      fd.glassType,
       };
 
-      const isPool = POOL_STRUCTURES.includes(fd.structure);
+      const isPool = fd.isPool;
       let templateFile;
 
       if (isPool) {
@@ -698,9 +822,9 @@
     el('rgps-lotDescription').value = '';
     el('rgps-system').value       = 'mini-post';
     el('rgps-substrate').value    = 'Timber';
-    el('rgps-structure').value    = 'Deck';
     el('rgps-thickness').value    = '12';
-    document.querySelectorAll('input[name="rgps-location"]').forEach(cb => { cb.checked = cb.value === 'External'; });
+    scopeRows = [{ location: '', structures: [] }];
+    renderScopeRows();
     document.querySelector('input[name="rgps-newOrExisting"][value="New"]').checked    = true;
     document.querySelector('input[name="rgps-requiresGate"][value="No"]').checked      = true;
     document.querySelector('input[name="rgps-glassType"][value="Toughened"]').checked  = true;
@@ -732,11 +856,22 @@
     el('rgps-btn-database').addEventListener('click', showRecordsView);
     el('rgps-btn-clear').addEventListener('click', clearForm);
     el('rgps-btn-back').addEventListener('click', showFormView);
-    // Auto-set Gate Required when structure changes to/from Pool
-    el('rgps-structure').addEventListener('change', function () {
-      const isPool = POOL_STRUCTURES.includes(this.value);
-      document.querySelector('input[name="rgps-requiresGate"][value="Yes"]').checked = isPool;
-      document.querySelector('input[name="rgps-requiresGate"][value="No"]').checked  = !isPool;
+    renderScopeRows();
+    el('rgps-btn-add-scope').addEventListener('click', function () {
+      if (buildScopeSummary(scopeRows).canAddScope) {
+        scopeRows.push({ location: '', structures: [] });
+        renderScopeRows();
+      }
+    });
+    el('rgps-scope-rows').addEventListener('change', function (event) {
+      if (event.target.hasAttribute('data-scope-location') || event.target.hasAttribute('data-scope-structure')) updateScopeRow(event.target);
+    });
+    el('rgps-scope-rows').addEventListener('click', function (event) {
+      if (!event.target.hasAttribute('data-remove-scope')) return;
+      const rowElement = event.target.closest('[data-scope-index]');
+      if (!rowElement) return;
+      scopeRows.splice(Number(rowElement.dataset.scopeIndex), 1);
+      renderScopeRows();
     });
     // Apply the usual thickness for each glass type when selected, while
     // keeping the thickness dropdown available for a manual override.

@@ -165,11 +165,41 @@ test('Aluminium descriptions distinguish pool fencing from balustrades', () => {
   const { testApi } = loadApp();
 
   assert.equal(
-    testApi.buildDescription('', 'None', 'Pool', 'New', 'External', 'viking-aluminium'),
-    'Aluminium pool fence installation for New External Pool area using Viking Aluminium System'
+    testApi.buildDescription('', 'None', { combinedAreaList: 'External Pool Area', isPool: true }, 'New', 'viking-aluminium'),
+    'New Aluminium pool fence installation for External Pool Area using Viking Aluminium System'
   );
   assert.equal(
-    testApi.buildDescription('', 'None', 'Deck', 'New', 'External', 'viking-aluminium'),
-    'Aluminium balustrade installation for New External Deck area using Viking Aluminium System'
+    testApi.buildDescription('', 'None', { combinedAreaList: 'External Deck Area', isPool: false }, 'New', 'viking-aluminium'),
+    'New Aluminium balustrade installation for External Deck Area using Viking Aluminium System'
   );
+});
+
+test('scope rows produce an ordered combined area list and make Pool exclusive', () => {
+  const { testApi } = loadApp();
+
+  const scope = testApi.buildScopeSummary([
+    { location: 'Internal', structures: ['Stair', 'Balcony'] },
+    { location: 'External', structures: ['Deck'] },
+  ]);
+
+  assert.equal(scope.combinedAreaList, 'Internal Stair and Balcony Area and External Deck Area');
+  assert.equal(scope.location, 'Internal and External');
+  assert.equal(scope.structure, 'Stair and Balcony and Deck');
+  assert.equal(scope.isPool, false);
+  assert.equal(scope.canAddScope, true);
+  assert.equal(
+    testApi.buildDescription('12', 'Toughened', scope, 'New', 'mini-post'),
+    'New 12mm Toughened Glass installation for Internal Stair and Balcony Area and External Deck Area using Mini Post System'
+  );
+
+  const poolScope = testApi.buildScopeSummary([{ location: 'External', structures: ['Pool'] }]);
+  assert.equal(poolScope.combinedAreaList, 'External Pool Area');
+  assert.equal(poolScope.location, 'External');
+  assert.equal(poolScope.structure, 'Pool');
+  assert.equal(poolScope.isPool, true);
+  assert.equal(poolScope.canAddScope, false);
+
+  const incompletePoolScope = testApi.buildScopeSummary([{ location: '', structures: ['Pool'] }]);
+  assert.equal(incompletePoolScope.isPool, true);
+  assert.equal(incompletePoolScope.canAddScope, false);
 });

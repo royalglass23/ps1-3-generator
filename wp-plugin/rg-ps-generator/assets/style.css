@@ -62,6 +62,22 @@
   display: flex; align-items: center; gap: .4rem; font-weight: 400; cursor: pointer;
 }
 
+.rgps-scope-heading { display: flex; justify-content: space-between; align-items: start; gap: 1rem; }
+.rgps-help { margin: .25rem 0 0; color: #71717a; font-size: .8rem; font-weight: 400; }
+.rgps-scope-row { border: 1px solid #d4d4d8; border-radius: 6px; padding: 1rem; margin-top: .75rem; }
+.rgps-scope-row-header { display: flex; justify-content: space-between; align-items: center; gap: .75rem; margin-bottom: .75rem; }
+.rgps-scope-row-title { font-size: .875rem; font-weight: 600; }
+.rgps-scope-row-grid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 2fr); gap: 1rem; }
+.rgps-scope-structure-list { display: flex; flex-wrap: wrap; gap: .5rem 1rem; }
+.rgps-scope-structure-list label { display: flex; align-items: center; gap: .35rem; font-size: .875rem; font-weight: 400; cursor: pointer; }
+.rgps-btn-add-scope, .rgps-btn-remove-scope { flex: 0 0 auto; padding: .35rem .65rem; font-size: .85rem; }
+.rgps-btn-add-scope { background: #f4f4f5; color: #3f3f46; border: 1px solid #d4d4d8; }
+.rgps-btn-remove-scope { background: transparent; color: #b91c1c; border: 1px solid #fecaca; }
+@media (max-width: 560px) {
+  .rgps-scope-heading, .rgps-scope-row-grid { display: flex; flex-direction: column; }
+  .rgps-scope-heading { align-items: stretch; }
+}
+
 /* Buttons */
 .rgps-btn-row { display: flex; gap: .75rem; flex-wrap: wrap; margin-top: .5rem; }
 .rgps-btn-row .rgps-btn { flex: 1 1 0%; min-width: 130px; text-align: center; }

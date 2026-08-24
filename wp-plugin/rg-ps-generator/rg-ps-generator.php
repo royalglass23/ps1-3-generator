@@ -211,24 +211,15 @@ function rgps_shortcode() {
                 <option value="Steel">Steel</option>
               </select>
             </div>
-            <div class="rgps-field">
-              <label for="rgps-structure">Structure Type</label>
-              <select id="rgps-structure">
-                <option value="Deck">Deck</option>
-                <option value="Balcony">Balcony</option>
-                <option value="Pool">Pool Area</option>
-                <option value="Stair">Stair Area</option>
-                <option value="Landing">Landing</option>
-                <option value="Stair and Landing">Stair and Landing</option>
-                <option value="Stair and Balcony">Stair and Balcony Area</option>
-              </select>
-            </div>
-            <div class="rgps-field">
-              <label>Location</label>
-              <div class="rgps-radio-group">
-                <label><input type="checkbox" name="rgps-location" value="Internal" /> Internal</label>
-                <label><input type="checkbox" name="rgps-location" value="External" checked /> External</label>
+            <div class="rgps-field rgps-scope-field">
+              <div class="rgps-scope-heading">
+                <div>
+                  <label>Areas Covered <span class="rgps-req">*</span></label>
+                  <p class="rgps-help">Add up to five separately described areas. A Pool Area must be the only area.</p>
+                </div>
+                <button type="button" class="rgps-btn rgps-btn-add-scope" id="rgps-btn-add-scope">Add area</button>
               </div>
+              <div id="rgps-scope-rows"></div>
             </div>
             <div class="rgps-field">
               <label>Structure Built</label>
@@ -422,7 +413,7 @@ function rgps_handle_log() {
 
     $allowed_systems    = [ 'hidden', 'mini-post', 'double-disc', 'side-channel', 'top-channel', 'viking-aluminium', 'viking-glass', 'jh-clamp', 'vista', 'mp-sp14', 'lugano', 'unex-ascot', 'unex-metropolis' ];
     $allowed_substrates = [ 'Timber', 'Concrete', 'Steel' ];
-    $allowed_structures = [ 'Deck', 'Balcony', 'Pool', 'Pool Fence', 'Stair', 'Landing', 'Stair and Landing', 'Stair and Balcony' ];
+    $allowed_structures = [ 'Deck', 'Balcony', 'Pool', 'Pool Fence', 'Stair', 'Landing', 'Stair and Landing', 'Stair and Balcony', 'Multiple scopes' ];
     $allowed_locations  = [ 'Internal', 'External', 'Internal and External' ];
     $allowed_noe        = [ 'New', 'Existing' ];
     $allowed_thick      = [ '12', '13.2', '13.52', '15' ];
