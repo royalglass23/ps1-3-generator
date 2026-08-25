@@ -126,11 +126,11 @@ test('Aluminium descriptions distinguish pool fencing from balustrades', () => {
   const { testApi } = loadApp();
   assert.equal(
     testApi.buildDescription('', 'None', { combinedAreaList: 'External Pool Area', isPool: true }, 'New', 'viking-aluminium'),
-    'New Aluminium pool fence installation for External Pool Area using Viking Aluminium System'
+    'Aluminium pool fence installation for New External Pool Area using Viking Aluminium System'
   );
   assert.equal(
     testApi.buildDescription('', 'None', { combinedAreaList: 'External Deck Area', isPool: false }, 'New', 'viking-aluminium'),
-    'New Aluminium balustrade installation for External Deck Area using Viking Aluminium System'
+    'Aluminium balustrade installation for New External Deck Area using Viking Aluminium System'
   );
 });
 
@@ -147,7 +147,7 @@ test('scope rows produce an ordered combined area list and make Pool exclusive',
   assert.equal(scope.canAddScope, true);
   assert.equal(
     testApi.buildDescription('12', 'Toughened', scope, 'New', 'mini-post'),
-    'New 12mm Toughened Glass installation for Internal Stair and Balcony Area and External Deck Area using Mini Post System'
+    '12mm Toughened Glass installation for New Internal Stair and Balcony Area and External Deck Area using Mini Post System'
   );
   const poolScope = testApi.buildScopeSummary([{ location: 'External', structures: ['Pool'] }]);
   assert.equal(poolScope.combinedAreaList, 'External Pool Area');
