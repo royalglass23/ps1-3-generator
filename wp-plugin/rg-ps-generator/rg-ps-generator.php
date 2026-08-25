@@ -159,7 +159,7 @@ add_shortcode( 'rg_ps_generator', 'rgps_shortcode' );
 function rgps_shortcode() {
     wp_enqueue_script( 'pdf-lib',     'https://unpkg.com/pdf-lib@1.17.1/dist/pdf-lib.min.js', [], null, true );
     wp_enqueue_script( 'pdf-fontkit', 'https://unpkg.com/@pdf-lib/fontkit@1.1.1/dist/fontkit.umd.min.js', [], null, true );
-    wp_enqueue_script( 'rgps-app',    RGPS_URL . 'assets/app.js', [ 'pdf-lib', 'pdf-fontkit' ], '1.0.14', true );
+    wp_enqueue_script( 'rgps-app',    RGPS_URL . 'assets/app.js', [ 'pdf-lib', 'pdf-fontkit' ], '1.0.15', true );
     wp_enqueue_style(  'rgps-style', RGPS_URL . 'assets/style.css', [], '1.0.4' );
 
     $places_key = get_option( 'rgps_google_places_key', '' );
@@ -441,21 +441,21 @@ function rgps_handle_template() {
 add_action( 'wp_ajax_rgps_log',        'rgps_handle_log' );
 add_action( 'wp_ajax_nopriv_rgps_log', 'rgps_handle_log' );
 function rgps_is_valid_structure( $structure ) {
-    $legacy_structures = [ 'Deck', 'Balcony', 'Pool', 'Pool Fence', 'Stair', 'Landing', 'Stair and Landing', 'Stair and Balcony', 'Multiple scopes' ];
+    $legacy_structures = [ 'Deck', 'Balcony', 'Juliet Window', 'Pool', 'Pool Fence', 'Stair', 'Landing', 'Stair and Landing', 'Stair and Balcony', 'Multiple scopes' ];
     if ( in_array( $structure, $legacy_structures, true ) ) return true;
     if ( strpos( $structure, 'Pool' ) !== false ) {
         return preg_match( '/^(?:Internal|External) Pool Area$/', $structure ) === 1;
     }
 
     $location = '(?:Internal|External)';
-    $type = '(?:Deck|Balcony|Stair|Landing)';
+    $type = '(?:Deck|Balcony|Juliet Window|Stair|Landing)';
     $scope_row = $location . ' ' . $type . '(?: and ' . $type . ')* Area';
     return preg_match( '/^' . $scope_row . '(?: and ' . $scope_row . ')*$/', $structure ) === 1;
 }
 function rgps_build_scope_log_values( $scope_rows_json ) {
     $scope_rows = json_decode( $scope_rows_json, true );
     $allowed_locations = [ 'Internal', 'External' ];
-    $allowed_structures = [ 'Deck', 'Balcony', 'Stair', 'Landing', 'Pool' ];
+    $allowed_structures = [ 'Deck', 'Balcony', 'Juliet Window', 'Stair', 'Landing', 'Pool' ];
 
     if ( ! is_array( $scope_rows ) || count( $scope_rows ) < 1 || count( $scope_rows ) > 5 ) return false;
 

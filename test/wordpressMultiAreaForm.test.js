@@ -73,6 +73,16 @@ test('uses an accessible structure-type multi-select dropdown and carries the co
   assert.match(pluginSource, /function rgps_is_valid_structure/);
 });
 
+test('offers and accepts Juliet Window as a structure type', () => {
+  const { buildScopeSummary } = loadScopeHelpers();
+  assert.match(appSource, /\{ value: 'Juliet Window', label: 'Juliet Window' \}/);
+  assert.match(pluginSource, /\$allowed_structures = \[ 'Deck', 'Balcony', 'Juliet Window', 'Stair', 'Landing', 'Pool' \]/);
+  assert.equal(
+    buildScopeSummary([{ location: 'External', structures: ['Juliet Window'] }]).combinedAreaList,
+    'External Juliet Window Area'
+  );
+});
+
 test('keeps the collapsed structure-type trigger to one compact line', () => {
   assert.match(appSource, /class="rgps-scope-structure-toggle-label">' \+ selectedStructures \+ '<\/span>/);
   assert.match(
@@ -105,7 +115,7 @@ test('shares scope-row resolution across structure menu actions', () => {
 });
 
 test('cache-busts the updated structure trigger assets', () => {
-  assert.match(pluginSource, /'rgps-app',\s+RGPS_URL \. 'assets\/app\.js',\s+\[ 'pdf-lib', 'pdf-fontkit' \],\s+'1\.0\.14'/);
+  assert.match(pluginSource, /'rgps-app',\s+RGPS_URL \. 'assets\/app\.js',\s+\[ 'pdf-lib', 'pdf-fontkit' \],\s+'1\.0\.15'/);
   assert.match(pluginSource, /'rgps-style',\s+RGPS_URL \. 'assets\/style\.css',\s+\[\],\s+'1\.0\.4'/);
 });
 
