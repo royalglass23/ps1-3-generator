@@ -43,6 +43,8 @@
 .rgps-field { display: flex; flex-direction: column; gap: .3rem; margin-bottom: 1rem; }
 .rgps-field:last-child { margin-bottom: 0; }
 .rgps-field label { font-size: .875rem; font-weight: 500; }
+.rgps-form-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0 1rem; }
+.rgps-form-grid .rgps-field:last-child { margin-bottom: 1rem; }
 .rgps-req { color: #dc2626; }
 .rgps-opt { color: #71717a; font-weight: 400; }
 #rgps-root input[type="text"],
@@ -68,12 +70,18 @@
 .rgps-scope-row-header { display: flex; justify-content: space-between; align-items: center; gap: .75rem; margin-bottom: .75rem; }
 .rgps-scope-row-title { font-size: .875rem; font-weight: 600; }
 .rgps-scope-row-grid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 2fr); gap: 1rem; }
-.rgps-scope-structure-list { display: flex; flex-wrap: wrap; gap: .5rem 1rem; }
-.rgps-scope-structure-list label { display: flex; align-items: center; gap: .35rem; font-size: .875rem; font-weight: 400; cursor: pointer; }
+.rgps-scope-structure-picker { position: relative; }
+.rgps-scope-structure-toggle { width: 100%; min-height: 2.4rem; padding: .45rem .6rem; border: 1px solid #d4d4d8; border-radius: 4px; background: #fafafa; color: #18181b; font: inherit; text-align: left; cursor: pointer; }
+.rgps-scope-structure-toggle::after { content: '⌄'; float: right; color: #71717a; }
+.rgps-scope-structure-toggle:focus { outline: 2px solid #2563eb; border-color: transparent; background: #fff; }
+.rgps-scope-structure-menu { position: absolute; z-index: 2; top: calc(100% + .25rem); left: 0; width: 100%; padding: .65rem; border: 1px solid #d4d4d8; border-radius: 4px; background: #fff; box-shadow: 0 6px 16px rgb(24 24 27 / 15%); }
+.rgps-scope-structure-menu label { display: flex; align-items: center; gap: .35rem; padding: .3rem 0; font-size: .875rem; font-weight: 400; cursor: pointer; }
+.rgps-scope-error { margin: .75rem 0 0; color: #b91c1c; font-size: .8rem; }
 .rgps-btn-add-scope, .rgps-btn-remove-scope { flex: 0 0 auto; padding: .35rem .65rem; font-size: .85rem; }
 .rgps-btn-add-scope { background: #f4f4f5; color: #3f3f46; border: 1px solid #d4d4d8; }
 .rgps-btn-remove-scope { background: transparent; color: #b91c1c; border: 1px solid #fecaca; }
 @media (max-width: 560px) {
+  .rgps-form-grid { grid-template-columns: 1fr; }
   .rgps-scope-heading, .rgps-scope-row-grid { display: flex; flex-direction: column; }
   .rgps-scope-heading { align-items: stretch; }
 }

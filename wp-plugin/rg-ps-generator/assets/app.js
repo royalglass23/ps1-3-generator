@@ -145,7 +145,12 @@
     { value: 'Landing', label: 'Landing' },
     { value: 'Pool', label: 'Pool Area' },
   ];
-  let scopeRows = [{ location: '', structures: [] }];
+  let scopeRows = [createEmptyScopeRow()];
+  let scopeValidationAttempted = false;
+
+  function createEmptyScopeRow() {
+    return { location: '', structures: [], structureMenuOpen: false };
+  }
 
   function getSystem(key) {
     const s = SYSTEMS[key];
@@ -194,6 +199,8 @@
       structure: state.structure,
       isPool: state.isPool,
       canAddScope: state.canAddScope,
+      isComplete: state.isComplete,
+      isValid: state.isValid,
     };
   }
 
@@ -211,6 +218,8 @@
   if (window.RGPS_TEST_API) {
     window.RGPS_TEST_API.buildDescription = buildDescription;
     window.RGPS_TEST_API.buildScopeSummary = buildScopeSummary;
+    window.RGPS_TEST_API.fillPS1 = fillPS1;
+    window.RGPS_TEST_API.fillPS3 = fillPS3;
   }
 
   function buildShortDescription(scope, systemKey) {
@@ -241,6 +250,12 @@
       .join(' and ');
   }
 
+  function scopeRowValidationMessage(row) {
+    if (row.location && row.structures.length) return '';
+    if (!row.location && !row.structures.length) return 'Choose a location and at least one structure type.';
+    return row.location ? 'Choose at least one structure type.' : 'Choose Internal or External.';
+  }
+
   function renderScopeRows() {
     const container = el('rgps-scope-rows');
     const addButton = el('rgps-btn-add-scope');
@@ -255,6 +270,10 @@
         const disabled = option.value === 'Pool' && !poolSelectable ? ' disabled' : '';
         return '<label><input type="checkbox" data-scope-structure value="' + option.value + '"' + checked + disabled + ' /> ' + option.label + '</label>';
       }).join('');
+      const menuId = 'rgps-scope-structure-menu-' + index;
+      const selectedStructures = scopeStructureLabel(row.structures) || 'Choose structure types';
+      const menuHidden = row.structureMenuOpen ? '' : ' hidden';
+      const validationMessage = scopeValidationAttempted ? scopeRowValidationMessage(row) : '';
       const removeButton = scopeRows.length > 1
         ? '<button type="button" class="rgps-btn rgps-btn-remove-scope" data-remove-scope>Remove</button>'
         : '';
@@ -265,7 +284,11 @@
             '<label><input type="radio" name="' + locationName + '" data-scope-location value="Internal"' + (row.location === 'Internal' ? ' checked' : '') + ' /> Internal</label>' +
             '<label><input type="radio" name="' + locationName + '" data-scope-location value="External"' + (row.location === 'External' ? ' checked' : '') + ' /> External</label>' +
           '</div></div>' +
-          '<div class="rgps-field"><label>Structure types</label><div class="rgps-scope-structure-list">' + structureInputs + '</div></div>' +
+          '<div class="rgps-field"><label>Structure types</label><div class="rgps-scope-structure-picker">' +
+            '<button type="button" class="rgps-scope-structure-toggle" data-scope-structure-toggle aria-controls="' + menuId + '" aria-expanded="' + String(Boolean(row.structureMenuOpen)) + '">' + selectedStructures + '</button>' +
+            '<div id="' + menuId + '" class="rgps-scope-structure-menu"' + menuHidden + '>' + structureInputs + '</div>' +
+          '</div></div>' +
+          (validationMessage ? '<p class="rgps-scope-error">' + validationMessage + '</p>' : '') +
         '</div></fieldset>';
     }).join('');
 
@@ -290,8 +313,23 @@
       } else {
         row.structures = row.structures.filter(value => value !== target.value);
       }
-      if (row.structures.includes('Pool')) scopeRows = [row];
+      if (row.structures.includes('Pool')) {
+        row.structureMenuOpen = false;
+        scopeRows = [row];
+      } else {
+        row.structureMenuOpen = true;
+      }
     }
+    scopeValidationAttempted = false;
+    renderScopeRows();
+  }
+
+  function toggleScopeStructureMenu(target) {
+    const rowElement = target.closest('[data-scope-index]');
+    if (!rowElement) return;
+    const row = scopeRows[Number(rowElement.dataset.scopeIndex)];
+    if (!row) return;
+    row.structureMenuOpen = !row.structureMenuOpen;
     renderScopeRows();
   }
 
@@ -357,13 +395,18 @@
         field.setText(value || '');
       } catch (_) {}
     }
+    function setRequiredMultilineText(name, value) {
+      const field = form.getTextField(name);
+      field.enableMultiline();
+      field.setText(value || '');
+    }
     function setCheck(name, checked) {
       try { const cb = form.getCheckBox(name); checked ? cb.check() : cb.uncheck(); } catch (_) {}
     }
 
     setText('Name',            data.clientName);
     setText('Address',         data.address);
-    setMultilineText('Description',     data.longDescription);
+    setRequiredMultilineText('Description', data.longDescription);
     setText('Date0',           date);
     setText('Date01',          date);
     setText('Date-4',          date);
@@ -373,7 +416,7 @@
     setText('Address-4',       data.address);
     setMultilineText('Description02',  data.longDescription);
     setText('LotDescription02', data.lotDescription || '');
-    setText('Structure02',     data.structure);
+    setText('Structure02',     data.combinedAreaList);
     setText('Thickness',       data.thickness);
     setText('Height',          heights.height);
     setText('HeightAboveFix',  heights.heightAboveFix);
@@ -413,14 +456,19 @@
         field.setText(value || '');
       } catch (_) {}
     }
+    function setRequiredMultilineText(name, value) {
+      const field = form.getTextField(name);
+      field.enableMultiline();
+      field.setText(value || '');
+    }
     function setCheck(name, checked) {
       try { const cb = form.getCheckBox(name); checked ? cb.check() : cb.uncheck(); } catch (_) {}
     }
 
     setText('BC',           data.bcNumber || '');
     setText('Address02',    data.address);
-    setMultilineText('Description3', data.combinedAreaList || (data.location + ' ' + data.structure));
-    setMultilineText('Description2', data.longDescription);
+    setRequiredMultilineText('Description3', data.combinedAreaList || (data.location + ' ' + data.structure));
+    setRequiredMultilineText('Description2', data.longDescription);
     setText('Date03',       today());
     setText('Legal',        data.lotDescription || '');
 
@@ -477,8 +525,8 @@
       structure:      scope.structure,
       location:       scope.location,
       isPool:         scope.isPool,
-      glassType:     document.querySelector('input[name="rgps-glassType"]:checked')?.value || 'Toughened',
-      newOrExisting: document.querySelector('input[name="rgps-newOrExisting"]:checked').value || 'New',
+      glassType:     el('rgps-glassType').value || 'Toughened',
+      newOrExisting: el('rgps-newOrExisting').value || 'New',
     };
   }
 
@@ -500,8 +548,10 @@
       return;
     }
     if (!fd.scope.isComplete) {
+      scopeValidationAttempted = true;
+      renderScopeRows();
       status.className = 'rgps-status-error';
-      status.textContent = 'Choose a location and at least one structure type for every area.';
+      status.textContent = 'Complete the highlighted area rows before generating.';
       return;
     }
     if (!fd.scope.isValid) {
@@ -531,8 +581,9 @@
         lot_description: fd.lotDescription,
         system_type:     fd.system,
         substrate:       fd.substrate,
-        structure:       fd.scopeRows.length === 1 && fd.scopeRows[0].structures.length === 1 ? fd.scopeRows[0].structures[0] : 'Multiple scopes',
+        structure:       fd.combinedAreaList,
         location:        fd.location,
+        scope_rows:      JSON.stringify(fd.scopeRows),
         new_or_existing: fd.newOrExisting,
         thickness:       fd.thickness,
         glass_type:      fd.glassType,
@@ -540,6 +591,11 @@
 
       const isPool = fd.isPool;
       let templateFile;
+
+      async function logGeneration(fields) {
+        const result = await ajax('rgps_log', fields);
+        if (!result.ok) throw new Error(result.error || 'The PDF could not be logged, so its download was cancelled.');
+      }
 
       if (isPool) {
         if (!sys.poolTemplateFile) {
@@ -553,14 +609,14 @@
       if (mode === 'ps3') {
         const bytes    = await fillPS3(data);
         const filename = sanitizeFilename(fd.address + ' - PS3.pdf');
+        await logGeneration({ ...logFields, ps: 'PS3', filename });
         triggerDownload(bytes, filename);
-        await ajax('rgps_log', { ...logFields, ps: 'PS3', filename });
 
       } else if (mode === 'ps1') {
         const bytes    = await fillPS1(templateFile, data, heights);
         const filename = sanitizeFilename(fd.address + ' - PS1.pdf');
+        await logGeneration({ ...logFields, ps: 'PS1', filename });
         triggerDownload(bytes, filename);
-        await ajax('rgps_log', { ...logFields, ps: 'PS1', filename });
 
       } else {
         // both
@@ -570,9 +626,9 @@
         ]);
         const ps3File = sanitizeFilename(fd.address + ' - PS3.pdf');
         const ps1File = sanitizeFilename(fd.address + ' - PS1.pdf');
+        await logGeneration({ ...logFields, ps: 'Both', filename: ps1File });
         triggerDownload(ps3Bytes, ps3File);
         triggerDownload(ps1Bytes, ps1File);
-        await ajax('rgps_log', { ...logFields, ps: 'Both', filename: ps1File });
       }
 
       status.className   = 'rgps-status-ok';
@@ -823,11 +879,12 @@
     el('rgps-system').value       = 'mini-post';
     el('rgps-substrate').value    = 'Timber';
     el('rgps-thickness').value    = '12';
-    scopeRows = [{ location: '', structures: [] }];
+    scopeRows = [createEmptyScopeRow()];
+    scopeValidationAttempted = false;
     renderScopeRows();
-    document.querySelector('input[name="rgps-newOrExisting"][value="New"]').checked    = true;
+    el('rgps-newOrExisting').value = 'New';
     document.querySelector('input[name="rgps-requiresGate"][value="No"]').checked      = true;
-    document.querySelector('input[name="rgps-glassType"][value="Toughened"]').checked  = true;
+    el('rgps-glassType').value = 'Toughened';
     el('rgps-status').textContent = '';
     el('rgps-status').className   = '';
     el('rgps-clientName').focus();
@@ -859,7 +916,8 @@
     renderScopeRows();
     el('rgps-btn-add-scope').addEventListener('click', function () {
       if (buildScopeSummary(scopeRows).canAddScope) {
-        scopeRows.push({ location: '', structures: [] });
+        scopeRows.push(createEmptyScopeRow());
+        scopeValidationAttempted = false;
         renderScopeRows();
       }
     });
@@ -867,30 +925,30 @@
       if (event.target.hasAttribute('data-scope-location') || event.target.hasAttribute('data-scope-structure')) updateScopeRow(event.target);
     });
     el('rgps-scope-rows').addEventListener('click', function (event) {
+      const toggle = event.target.closest('[data-scope-structure-toggle]');
+      if (toggle) {
+        toggleScopeStructureMenu(toggle);
+        return;
+      }
       if (!event.target.hasAttribute('data-remove-scope')) return;
       const rowElement = event.target.closest('[data-scope-index]');
       if (!rowElement) return;
       scopeRows.splice(Number(rowElement.dataset.scopeIndex), 1);
+      if (!scopeRows.length) scopeRows = [createEmptyScopeRow()];
+      scopeValidationAttempted = false;
       renderScopeRows();
     });
     // Apply the usual thickness for each glass type when selected, while
     // keeping the thickness dropdown available for a manual override.
-    document.querySelectorAll('input[name="rgps-glassType"]').forEach(radio => {
-      const applySelectedGlassThicknessDefault = function () {
-        if (this.checked) applyGlassThicknessDefault(this.value);
-      };
-      radio.addEventListener('click', applySelectedGlassThicknessDefault);
-      radio.addEventListener('change', applySelectedGlassThicknessDefault);
+    el('rgps-glassType').addEventListener('change', function () {
+      applyGlassThicknessDefault(this.value);
     });
     // Aluminium baluster systems carry no glass: auto-select "Not Glass".
-    // The radio remains editable so staff can override the default when required.
+    // The dropdown remains editable so staff can override the default when required.
     el('rgps-system').addEventListener('change', function () {
       const glassVal = NON_GLASS_SYSTEMS.includes(this.value) ? 'None' : 'Toughened';
-      const radio = document.querySelector('input[name="rgps-glassType"][value="' + glassVal + '"]');
-      if (radio) {
-        radio.checked = true;
-        applyGlassThicknessDefault(glassVal);
-      }
+      el('rgps-glassType').value = glassVal;
+      applyGlassThicknessDefault(glassVal);
     });
 
     // Pagination controls

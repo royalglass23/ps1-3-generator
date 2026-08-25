@@ -10,6 +10,7 @@ if ( ! defined( 'ABSPATH' ) ) exit;
 
 define( 'RGPS_DIR', plugin_dir_path( __FILE__ ) );
 define( 'RGPS_URL', plugin_dir_url( __FILE__ ) );
+define( 'RGPS_SCHEMA_VERSION', '1.0.1' );
 
 // ── Header: dark background on PS generator page only ────────────────
 add_action( 'wp_head', 'rgps_header_styles' );
@@ -59,6 +60,14 @@ function rgps_header_styles() {
 // ── Activation: create table & default options ───────────────────────
 register_activation_hook( __FILE__, 'rgps_activate' );
 function rgps_activate() {
+    rgps_install_schema();
+
+    if ( ! get_option( 'rgps_access_password' ) ) {
+        add_option( 'rgps_access_password', '' );
+    }
+}
+
+function rgps_install_schema() {
     global $wpdb;
     $table   = $wpdb->prefix . 'rgps_records';
     $charset = $wpdb->get_charset_collate();
@@ -72,7 +81,7 @@ function rgps_activate() {
         lot_description VARCHAR(300),
         system_type     VARCHAR(50)  NOT NULL,
         substrate       VARCHAR(50)  NOT NULL,
-        structure       VARCHAR(100) NOT NULL,
+        structure       TEXT NOT NULL,
         location        VARCHAR(50)  NOT NULL,
         new_or_existing VARCHAR(20)  NOT NULL,
         thickness       VARCHAR(5),
@@ -80,10 +89,34 @@ function rgps_activate() {
         ps              VARCHAR(10)  NOT NULL DEFAULT 'PS1',
         filename        VARCHAR(400)
     ) {$charset};" );
+}
 
-    if ( ! get_option( 'rgps_access_password' ) ) {
-        add_option( 'rgps_access_password', '' );
+function rgps_is_structure_column_capacity_safe( $column ) {
+    if ( ! $column || ! isset( $column->Type ) ) return false;
+    return in_array( strtolower( (string) $column->Type ), [ 'text', 'mediumtext', 'longtext' ], true );
+}
+
+add_action( 'plugins_loaded', 'rgps_maybe_upgrade_schema' );
+function rgps_maybe_upgrade_schema() {
+    if ( get_option( 'rgps_schema_version' ) === RGPS_SCHEMA_VERSION ) return;
+
+    global $wpdb;
+    $table = $wpdb->prefix . 'rgps_records';
+    $table_exists = $wpdb->get_var( $wpdb->prepare( 'SHOW TABLES LIKE %s', $table ) );
+
+    if ( $table_exists !== $table ) {
+        rgps_install_schema();
     }
+
+    $column = $wpdb->get_row( "SHOW COLUMNS FROM `{$table}` LIKE 'structure'" );
+    if ( $column && strtolower( (string) $column->Type ) === 'varchar(100)' ) {
+        $updated = $wpdb->query( "ALTER TABLE `{$table}` MODIFY `structure` TEXT NOT NULL" );
+        if ( $updated === false ) return;
+        $column = $wpdb->get_row( "SHOW COLUMNS FROM `{$table}` LIKE 'structure'" );
+    }
+
+    if ( ! rgps_is_structure_column_capacity_safe( $column ) ) return;
+    update_option( 'rgps_schema_version', RGPS_SCHEMA_VERSION );
 }
 
 // ── Admin settings page ──────────────────────────────────────────────
@@ -126,8 +159,8 @@ add_shortcode( 'rg_ps_generator', 'rgps_shortcode' );
 function rgps_shortcode() {
     wp_enqueue_script( 'pdf-lib',     'https://unpkg.com/pdf-lib@1.17.1/dist/pdf-lib.min.js', [], null, true );
     wp_enqueue_script( 'pdf-fontkit', 'https://unpkg.com/@pdf-lib/fontkit@1.1.1/dist/fontkit.umd.min.js', [], null, true );
-    wp_enqueue_script( 'rgps-app',    RGPS_URL . 'assets/app.js', [ 'pdf-lib', 'pdf-fontkit' ], '1.0.10', true );
-    wp_enqueue_style(  'rgps-style', RGPS_URL . 'assets/style.css', [], '1.0.0' );
+    wp_enqueue_script( 'rgps-app',    RGPS_URL . 'assets/app.js', [ 'pdf-lib', 'pdf-fontkit' ], '1.0.11', true );
+    wp_enqueue_style(  'rgps-style', RGPS_URL . 'assets/style.css', [], '1.0.1' );
 
     $places_key = get_option( 'rgps_google_places_key', '' );
     if ( $places_key ) {
@@ -162,55 +195,87 @@ function rgps_shortcode() {
         <div id="rgps-form-view">
 
           <div class="rgps-card">
-            <h2>Project Details</h2>
-            <div class="rgps-field">
-              <label for="rgps-clientName">Client / Designer Name <span class="rgps-req">*</span></label>
-              <input type="text" id="rgps-clientName" placeholder="e.g. Royal Glass" />
-            </div>
-            <div class="rgps-field">
-              <label for="rgps-address">Property Address <span class="rgps-req">*</span></label>
-              <input type="text" id="rgps-address" placeholder="e.g. 13E Paul Matthews Rd" />
-            </div>
-            <div class="rgps-field">
-              <label for="rgps-bcNumber">BC Number <span class="rgps-opt">(optional)</span></label>
-              <input type="text" id="rgps-bcNumber" placeholder="e.g. BCO12345678" />
-            </div>
-            <div class="rgps-field">
-              <label for="rgps-lotDescription">Lot Description</label>
-              <input type="text" id="rgps-lotDescription" />
+            <h2>Document Details</h2>
+            <div class="rgps-form-grid">
+              <div class="rgps-field">
+                <label for="rgps-clientName">Client / Designer Name <span class="rgps-req">*</span></label>
+                <input type="text" id="rgps-clientName" placeholder="e.g. Royal Glass" />
+              </div>
+              <div class="rgps-field">
+                <label for="rgps-address">Property Address <span class="rgps-req">*</span></label>
+                <input type="text" id="rgps-address" placeholder="e.g. 13E Paul Matthews Rd" />
+              </div>
+              <div class="rgps-field">
+                <label for="rgps-bcNumber">BC Number <span class="rgps-opt">(optional)</span></label>
+                <input type="text" id="rgps-bcNumber" placeholder="e.g. BCO12345678" />
+              </div>
+              <div class="rgps-field">
+                <label for="rgps-lotDescription">Lot Description</label>
+                <input type="text" id="rgps-lotDescription" />
+              </div>
+              <div class="rgps-field">
+                <label for="rgps-system">System</label>
+                <select id="rgps-system">
+                  <option value="double-disc">Double Disc</option>
+                  <option value="hidden">Hidden Face</option>
+                  <option value="jh-clamp">JH Clamp</option>
+                  <option value="lugano">Lugano</option>
+                  <option value="mini-post">Mini Post</option>
+                  <option value="mp-sp14">Mini Post SP14</option>
+                  <option value="side-channel">Side Mount Channel</option>
+                  <option value="top-channel">Top Mount Channel</option>
+                  <option value="unex-ascot">Unex Ascot</option>
+                  <option value="unex-metropolis">Unex Metropolis</option>
+                  <option value="viking-aluminium">Viking Aluminium</option>
+                  <option value="viking-glass">Viking Glass</option>
+                  <option value="vista">Vista</option>
+                </select>
+              </div>
+              <div class="rgps-field">
+                <label for="rgps-substrate">Structure Material</label>
+                <select id="rgps-substrate">
+                  <option value="Timber">Timber</option>
+                  <option value="Concrete">Concrete</option>
+                  <option value="Steel">Steel</option>
+                </select>
+              </div>
+              <div class="rgps-field">
+                <label for="rgps-newOrExisting">Structure Built</label>
+                <select id="rgps-newOrExisting">
+                  <option value="New" selected>New</option>
+                  <option value="Existing">Existing</option>
+                </select>
+              </div>
+              <div class="rgps-field">
+                <label for="rgps-glassType">Glass Type</label>
+                <select id="rgps-glassType">
+                  <option value="Toughened" selected>Toughened</option>
+                  <option value="Laminated">Laminated</option>
+                  <option value="None">Not Glass</option>
+                </select>
+              </div>
+              <div class="rgps-field">
+                <label for="rgps-thickness">Glass Thickness</label>
+                <select id="rgps-thickness">
+                  <option value="">Blank (not glass)</option>
+                  <option value="12" selected>12mm</option>
+                  <option value="13.2">13.2mm</option>
+                  <option value="13.52">13.52mm</option>
+                  <option value="15">15mm</option>
+                </select>
+              </div>
+              <div class="rgps-field">
+                <label>Gate Required?</label>
+                <div class="rgps-radio-group">
+                  <label><input type="radio" name="rgps-requiresGate" value="Yes" /> Yes</label>
+                  <label><input type="radio" name="rgps-requiresGate" value="No" checked /> No</label>
+                </div>
+              </div>
             </div>
           </div>
 
           <div class="rgps-card">
-            <h2>System &amp; Installation</h2>
-            <div class="rgps-field">
-              <label for="rgps-system">System</label>
-              <select id="rgps-system">
-
-                <option value="double-disc">Double Disc</option>
-                <option value="hidden">Hidden Face</option>
-                <option value="jh-clamp">JH Clamp</option>
-                <option value="lugano">Lugano</option>
-                <option value="mini-post">Mini Post</option>
-                <option value="mp-sp14">Mini Post SP14</option>
-                <option value="side-channel">Side Mount Channel</option>
-                <option value="top-channel">Top Mount Channel</option>
-                <option value="unex-ascot">Unex Ascot</option>
-                <option value="unex-metropolis">Unex Metropolis</option>
-                <option value="viking-aluminium">Viking Aluminium</option>
-                <option value="viking-glass">Viking Glass</option>
-                <option value="vista">Vista</option>
-
-              </select>
-            </div>
-            <div class="rgps-field">
-              <label for="rgps-substrate">Structure Material</label>
-              <select id="rgps-substrate">
-                <option value="Timber">Timber</option>
-                <option value="Concrete">Concrete</option>
-                <option value="Steel">Steel</option>
-              </select>
-            </div>
+            <h2>Areas Covered</h2>
             <div class="rgps-field rgps-scope-field">
               <div class="rgps-scope-heading">
                 <div>
@@ -221,44 +286,12 @@ function rgps_shortcode() {
               </div>
               <div id="rgps-scope-rows"></div>
             </div>
-            <div class="rgps-field">
-              <label>Structure Built</label>
-              <div class="rgps-radio-group">
-                <label><input type="radio" name="rgps-newOrExisting" value="New" checked /> New</label>
-                <label><input type="radio" name="rgps-newOrExisting" value="Existing" /> Existing</label>
-              </div>
-            </div>
-            <div class="rgps-field">
-              <label>Glass Type</label>
-              <div class="rgps-radio-group">
-                <label><input type="radio" name="rgps-glassType" value="Toughened" checked /> Toughened</label>
-                <label><input type="radio" name="rgps-glassType" value="Laminated" /> Laminated</label>
-                <label><input type="radio" name="rgps-glassType" value="None" /> Not Glass</label>
-              </div>
-            </div>
-            <div class="rgps-field">
-              <label for="rgps-thickness">Glass Thickness</label>
-              <select id="rgps-thickness">
-                <option value="">Blank (not glass)</option>
-                <option value="12" selected>12mm</option>
-                <option value="13.2">13.2mm</option>
-                <option value="13.52">13.52mm</option>
-                <option value="15">15mm</option>
-              </select>
-            </div>
-            <div class="rgps-field">
-              <label>Gate Required?</label>
-              <div class="rgps-radio-group">
-                <label><input type="radio" name="rgps-requiresGate" value="Yes" /> Yes</label>
-                <label><input type="radio" name="rgps-requiresGate" value="No" checked /> No</label>
-              </div>
-            </div>
           </div>
 
           <div class="rgps-btn-row">
             <button class="rgps-btn rgps-btn-primary"   data-mode="ps1">Generate PS1</button>
             <button class="rgps-btn rgps-btn-secondary" data-mode="ps3">Generate PS3</button>
-            <button class="rgps-btn rgps-btn-both"      data-mode="both">Generate Both</button>
+            <button class="rgps-btn rgps-btn-both"      data-mode="both">Generate PS1 + PS3</button>
           </div>
           <div class="rgps-btn-row" style="margin-top:.5rem;">
             <button class="rgps-btn rgps-btn-db"    id="rgps-btn-database">PS Database</button>
@@ -407,13 +440,52 @@ function rgps_handle_template() {
 // ── AJAX: log generation ─────────────────────────────────────────────
 add_action( 'wp_ajax_rgps_log',        'rgps_handle_log' );
 add_action( 'wp_ajax_nopriv_rgps_log', 'rgps_handle_log' );
+function rgps_is_valid_structure( $structure ) {
+    $legacy_structures = [ 'Deck', 'Balcony', 'Pool', 'Pool Fence', 'Stair', 'Landing', 'Stair and Landing', 'Stair and Balcony', 'Multiple scopes' ];
+    if ( in_array( $structure, $legacy_structures, true ) ) return true;
+    if ( strpos( $structure, 'Pool' ) !== false ) {
+        return preg_match( '/^(?:Internal|External) Pool Area$/', $structure ) === 1;
+    }
+
+    $location = '(?:Internal|External)';
+    $type = '(?:Deck|Balcony|Stair|Landing)';
+    $scope_row = $location . ' ' . $type . '(?: and ' . $type . ')* Area';
+    return preg_match( '/^' . $scope_row . '(?: and ' . $scope_row . ')*$/', $structure ) === 1;
+}
+function rgps_build_scope_log_values( $scope_rows_json ) {
+    $scope_rows = json_decode( $scope_rows_json, true );
+    $allowed_locations = [ 'Internal', 'External' ];
+    $allowed_structures = [ 'Deck', 'Balcony', 'Stair', 'Landing', 'Pool' ];
+
+    if ( ! is_array( $scope_rows ) || count( $scope_rows ) < 1 || count( $scope_rows ) > 5 ) return false;
+
+    $area_parts = [];
+    $locations = [];
+    foreach ( $scope_rows as $scope_row ) {
+        if ( ! is_array( $scope_row ) || ! isset( $scope_row['location'], $scope_row['structures'] ) ) return false;
+        $location = $scope_row['location'];
+        $structures = is_array( $scope_row['structures'] ) ? array_values( array_unique( $scope_row['structures'] ) ) : [];
+        if ( ! in_array( $location, $allowed_locations, true ) || count( $structures ) < 1 || count( $structures ) > 4 ) return false;
+        foreach ( $structures as $structure ) {
+            if ( ! is_string( $structure ) || ! in_array( $structure, $allowed_structures, true ) ) return false;
+        }
+        if ( in_array( 'Pool', $structures, true ) && ( count( $scope_rows ) !== 1 || count( $structures ) !== 1 ) ) return false;
+
+        $area_parts[] = $location . ' ' . implode( ' and ', $structures ) . ' Area';
+        if ( ! in_array( $location, $locations, true ) ) $locations[] = $location;
+    }
+
+    return [
+        'structure' => implode( ' and ', $area_parts ),
+        'location' => count( $locations ) === 2 ? 'Internal and External' : $locations[0],
+    ];
+}
 function rgps_handle_log() {
     rgps_verify_token();
     global $wpdb;
 
     $allowed_systems    = [ 'hidden', 'mini-post', 'double-disc', 'side-channel', 'top-channel', 'viking-aluminium', 'viking-glass', 'jh-clamp', 'vista', 'mp-sp14', 'lugano', 'unex-ascot', 'unex-metropolis' ];
     $allowed_substrates = [ 'Timber', 'Concrete', 'Steel' ];
-    $allowed_structures = [ 'Deck', 'Balcony', 'Pool', 'Pool Fence', 'Stair', 'Landing', 'Stair and Landing', 'Stair and Balcony', 'Multiple scopes' ];
     $allowed_locations  = [ 'Internal', 'External', 'Internal and External' ];
     $allowed_noe        = [ 'New', 'Existing' ];
     $allowed_thick      = [ '12', '13.2', '13.52', '15' ];
@@ -423,13 +495,21 @@ function rgps_handle_log() {
     $substrate   = sanitize_text_field( $_POST['substrate']       ?? '' );
     $structure   = sanitize_text_field( $_POST['structure']       ?? '' );
     $location    = sanitize_text_field( $_POST['location']        ?? '' );
+    $scope_rows_json = wp_unslash( $_POST['scope_rows'] ?? '' );
     $noe         = sanitize_text_field( $_POST['new_or_existing'] ?? '' );
     $thickness   = sanitize_text_field( $_POST['thickness']       ?? '' );
     $glass_type  = sanitize_text_field( $_POST['glass_type']      ?? 'Toughened' );
 
     if ( ! in_array( $system_type, $allowed_systems,    true ) ) wp_send_json( [ 'ok' => false ], 400 );
     if ( ! in_array( $substrate,   $allowed_substrates, true ) ) wp_send_json( [ 'ok' => false ], 400 );
-    if ( ! in_array( $structure,   $allowed_structures, true ) ) wp_send_json( [ 'ok' => false ], 400 );
+    if ( $scope_rows_json !== '' ) {
+        $scope_log_values = rgps_build_scope_log_values( $scope_rows_json );
+        if ( $scope_log_values === false ) wp_send_json( [ 'ok' => false ], 400 );
+        $structure = $scope_log_values['structure'];
+        $location = $scope_log_values['location'];
+    } elseif ( ! rgps_is_valid_structure( $structure ) ) {
+        wp_send_json( [ 'ok' => false ], 400 );
+    }
     if ( ! in_array( $location,    $allowed_locations,  true ) ) wp_send_json( [ 'ok' => false ], 400 );
     if ( ! in_array( $noe,         $allowed_noe,        true ) ) wp_send_json( [ 'ok' => false ], 400 );
     if ( ! in_array( $glass_type,  $allowed_glass,      true ) ) $glass_type = 'Toughened';
@@ -439,7 +519,7 @@ function rgps_handle_log() {
         $thickness = '12';
     }
 
-    $wpdb->insert( $wpdb->prefix . 'rgps_records', [
+    $inserted = $wpdb->insert( $wpdb->prefix . 'rgps_records', [
         'created_at'      => current_time( 'mysql' ),
         'client_name'     => substr( sanitize_text_field( $_POST['client_name']     ?? '' ), 0, 200 ),
         'address'         => substr( sanitize_text_field( $_POST['address']         ?? '' ), 0, 300 ),
@@ -455,6 +535,9 @@ function rgps_handle_log() {
         'ps'              => in_array( $_POST['ps'] ?? '', [ 'PS1', 'PS3', 'Both' ], true ) ? $_POST['ps'] : 'PS1',
         'filename'        => substr( sanitize_file_name( $_POST['filename'] ?? '' ), 0, 400 ),
     ] );
+    if ( $inserted === false ) {
+        wp_send_json( [ 'ok' => false, 'error' => 'The generation record could not be saved.' ], 500 );
+    }
 
     wp_send_json( [ 'ok' => true ] );
 }
