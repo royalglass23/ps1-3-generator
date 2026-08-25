@@ -125,7 +125,7 @@ test('fills the actual PS1 and PS3 templates for a combined-area document', asyn
     newOrExisting: 'New',
     thickness: '12',
     glassType: 'Toughened',
-    longDescription: 'New 12mm Toughened Glass installation for Internal Stair and Balcony Area and External Deck Area using Mini Post System',
+    longDescription: '12mm Toughened Glass installation for New Internal Stair and Balcony Area and External Deck Area using Mini Post System',
   };
 
   const [ps1, ps3] = await Promise.all([
@@ -141,7 +141,7 @@ test('fills the actual PS1 and PS3 templates for a combined-area document', asyn
     combinedAreaList: 'External Pool Area',
     structure: 'Pool',
     location: 'External',
-    longDescription: 'New 12mm Toughened Glass installation for External Pool Area using Mini Post System',
+    longDescription: '12mm Toughened Glass installation for New External Pool Area using Mini Post System',
   }, { height: '1.26', heightAboveFix: '1.05' });
   assert.ok(poolPs1.length > 0);
 });
@@ -159,7 +159,7 @@ test('maps combined areas and aggregate locations into the required PDF fields',
     newOrExisting: 'New',
     thickness: '12',
     glassType: 'Toughened',
-    longDescription: 'New 12mm Toughened Glass installation for Internal Stair and Balcony Area and External Deck Area using Mini Post System',
+    longDescription: '12mm Toughened Glass installation for New Internal Stair and Balcony Area and External Deck Area using Mini Post System',
   };
 
   await fillers.fillPS1('MP_PS1_2026.pdf', data, { height: '1.01', heightAboveFix: '0.85' });
@@ -180,7 +180,7 @@ test('fails generation when a required combined-description field is absent', as
   const data = {
     clientName: 'Mātai ū', address: '12 Tāmaki Drive', bcNumber: 'BC123', lotDescription: '',
     combinedAreaList: 'Internal Stair Area', substrate: 'Timber', location: 'Internal',
-    newOrExisting: 'New', thickness: '12', glassType: 'Toughened', longDescription: 'New 12mm Toughened Glass installation for Internal Stair Area using Mini Post System',
+    newOrExisting: 'New', thickness: '12', glassType: 'Toughened', longDescription: '12mm Toughened Glass installation for New Internal Stair Area using Mini Post System',
   };
   const ps1 = loadRecordingPdfFillers('Description').fillers;
   await assert.rejects(() => ps1.fillPS1('MP_PS1_2026.pdf', data, { height: '1.01', heightAboveFix: '0.85' }), /Missing field: Description/);

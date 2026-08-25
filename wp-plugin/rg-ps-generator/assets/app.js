@@ -205,13 +205,13 @@
   }
 
   function buildDescription(thickness, glassType, scope, newOrExisting, systemKey) {
-    const suffix  = ' installation for ' + scope.combinedAreaList + ' using ' + getSystem(systemKey).displayName + ' System';
+    const suffix  = ' installation for ' + newOrExisting + ' ' + scope.combinedAreaList + ' using ' + getSystem(systemKey).displayName + ' System';
     // Aluminium systems have no glass, but retain the shared installation context.
     if (glassType === 'None') {
       const product = scope.isPool ? 'Aluminium pool fence' : 'Aluminium balustrade';
-      return newOrExisting + ' ' + product + suffix;
+      return product + suffix;
     }
-    return newOrExisting + ' ' + thickness + 'mm ' + glassType + ' Glass' + suffix;
+    return thickness + 'mm ' + glassType + ' Glass' + suffix;
   }
 
   // Available only to the browserless regression tests; not created in production.

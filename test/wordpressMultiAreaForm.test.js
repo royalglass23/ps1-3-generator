@@ -105,7 +105,7 @@ test('shares scope-row resolution across structure menu actions', () => {
 });
 
 test('cache-busts the updated structure trigger assets', () => {
-  assert.match(pluginSource, /'rgps-app',\s+RGPS_URL \. 'assets\/app\.js',\s+\[ 'pdf-lib', 'pdf-fontkit' \],\s+'1\.0\.13'/);
+  assert.match(pluginSource, /'rgps-app',\s+RGPS_URL \. 'assets\/app\.js',\s+\[ 'pdf-lib', 'pdf-fontkit' \],\s+'1\.0\.14'/);
   assert.match(pluginSource, /'rgps-style',\s+RGPS_URL \. 'assets\/style\.css',\s+\[\],\s+'1\.0\.4'/);
 });
 
