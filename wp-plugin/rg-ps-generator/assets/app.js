@@ -324,12 +324,23 @@
     renderScopeRows();
   }
 
-  function toggleScopeStructureMenu(target) {
+  function getScopeRowForTarget(target) {
     const rowElement = target.closest('[data-scope-index]');
-    if (!rowElement) return;
-    const row = scopeRows[Number(rowElement.dataset.scopeIndex)];
+    if (!rowElement) return null;
+    return scopeRows[Number(rowElement.dataset.scopeIndex)];
+  }
+
+  function toggleScopeStructureMenu(target) {
+    const row = getScopeRowForTarget(target);
     if (!row) return;
     row.structureMenuOpen = !row.structureMenuOpen;
+    renderScopeRows();
+  }
+
+  function closeScopeStructureMenu(target) {
+    const row = getScopeRowForTarget(target);
+    if (!row || !row.structureMenuOpen) return;
+    row.structureMenuOpen = false;
     renderScopeRows();
   }
 
@@ -937,6 +948,11 @@
       if (!scopeRows.length) scopeRows = [createEmptyScopeRow()];
       scopeValidationAttempted = false;
       renderScopeRows();
+    });
+    el('rgps-scope-rows').addEventListener('pointerout', function (event) {
+      const picker = event.target.closest('.rgps-scope-structure-picker');
+      if (!picker || picker.contains(event.relatedTarget)) return;
+      closeScopeStructureMenu(picker);
     });
     // Apply the usual thickness for each glass type when selected, while
     // keeping the thickness dropdown available for a manual override.

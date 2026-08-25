@@ -81,8 +81,18 @@ test('keeps the collapsed structure-type trigger to one compact line', () => {
   );
 });
 
+test('closes an open structure-type menu after the pointer leaves its picker', () => {
+  assert.match(appSource, /addEventListener\('pointerout', function \(event\) \{[\s\S]*?closest\('\.rgps-scope-structure-picker'\)[\s\S]*?picker\.contains\(event\.relatedTarget\)[\s\S]*?closeScopeStructureMenu\(picker\);/);
+});
+
+test('shares scope-row resolution across structure menu actions', () => {
+  assert.match(appSource, /function getScopeRowForTarget\(target\) \{[\s\S]*?target\.closest\('\[data-scope-index\]'\)/);
+  assert.match(appSource, /function toggleScopeStructureMenu\(target\) \{\s*const row = getScopeRowForTarget\(target\);/);
+  assert.match(appSource, /function closeScopeStructureMenu\(target\) \{\s*const row = getScopeRowForTarget\(target\);/);
+});
+
 test('cache-busts the updated structure trigger assets', () => {
-  assert.match(pluginSource, /'rgps-app',\s+RGPS_URL \. 'assets\/app\.js',\s+\[ 'pdf-lib', 'pdf-fontkit' \],\s+'1\.0\.12'/);
+  assert.match(pluginSource, /'rgps-app',\s+RGPS_URL \. 'assets\/app\.js',\s+\[ 'pdf-lib', 'pdf-fontkit' \],\s+'1\.0\.13'/);
   assert.match(pluginSource, /'rgps-style',\s+RGPS_URL \. 'assets\/style\.css',\s+\[\],\s+'1\.0\.2'/);
 });
 
