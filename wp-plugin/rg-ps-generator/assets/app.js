@@ -143,6 +143,7 @@
     { value: 'Balcony', label: 'Balcony' },
     { value: 'Stair', label: 'Stair' },
     { value: 'Landing', label: 'Landing' },
+    { value: 'Juliet Window', label: 'Juliet Window' },
     { value: 'Pool', label: 'Pool Area' },
   ];
   let scopeRows = [createEmptyScopeRow()];
