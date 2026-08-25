@@ -81,6 +81,19 @@ test('keeps the collapsed structure-type trigger to one compact line', () => {
   );
 });
 
+test('matches the compact size used by standard form controls', () => {
+  assert.match(
+    styleSource,
+    /\.rgps-scope-structure-toggle\s*\{[^}]*font:\s*inherit;[^}]*font-size:\s*\.95rem;/s
+  );
+  assert.match(styleSource, /\.rgps-scope-structure-toggle\s*\{[^}]*padding:\s*\.45rem\s+\.6rem;/s);
+  assert.doesNotMatch(styleSource, /\.rgps-scope-structure-toggle\s*\{[^}]*min-height:/s);
+});
+
+test('keeps the pointer path from the structure trigger to its menu gap-free', () => {
+  assert.match(styleSource, /\.rgps-scope-structure-menu\s*\{[^}]*top:\s*100%;/s);
+});
+
 test('closes an open structure-type menu after the pointer leaves its picker', () => {
   assert.match(appSource, /addEventListener\('pointerout', function \(event\) \{[\s\S]*?closest\('\.rgps-scope-structure-picker'\)[\s\S]*?picker\.contains\(event\.relatedTarget\)[\s\S]*?closeScopeStructureMenu\(picker\);/);
 });
@@ -93,7 +106,7 @@ test('shares scope-row resolution across structure menu actions', () => {
 
 test('cache-busts the updated structure trigger assets', () => {
   assert.match(pluginSource, /'rgps-app',\s+RGPS_URL \. 'assets\/app\.js',\s+\[ 'pdf-lib', 'pdf-fontkit' \],\s+'1\.0\.13'/);
-  assert.match(pluginSource, /'rgps-style',\s+RGPS_URL \. 'assets\/style\.css',\s+\[\],\s+'1\.0\.2'/);
+  assert.match(pluginSource, /'rgps-style',\s+RGPS_URL \. 'assets\/style\.css',\s+\[\],\s+'1\.0\.4'/);
 });
 
 test('validates a complete five-area document and rejects incomplete or mixed Pool rows', () => {

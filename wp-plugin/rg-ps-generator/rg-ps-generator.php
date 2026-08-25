@@ -160,7 +160,7 @@ function rgps_shortcode() {
     wp_enqueue_script( 'pdf-lib',     'https://unpkg.com/pdf-lib@1.17.1/dist/pdf-lib.min.js', [], null, true );
     wp_enqueue_script( 'pdf-fontkit', 'https://unpkg.com/@pdf-lib/fontkit@1.1.1/dist/fontkit.umd.min.js', [], null, true );
     wp_enqueue_script( 'rgps-app',    RGPS_URL . 'assets/app.js', [ 'pdf-lib', 'pdf-fontkit' ], '1.0.13', true );
-    wp_enqueue_style(  'rgps-style', RGPS_URL . 'assets/style.css', [], '1.0.2' );
+    wp_enqueue_style(  'rgps-style', RGPS_URL . 'assets/style.css', [], '1.0.4' );
 
     $places_key = get_option( 'rgps_google_places_key', '' );
     if ( $places_key ) {
