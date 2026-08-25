@@ -285,7 +285,7 @@
             '<label><input type="radio" name="' + locationName + '" data-scope-location value="External"' + (row.location === 'External' ? ' checked' : '') + ' /> External</label>' +
           '</div></div>' +
           '<div class="rgps-field"><label>Structure types</label><div class="rgps-scope-structure-picker">' +
-            '<button type="button" class="rgps-scope-structure-toggle" data-scope-structure-toggle aria-controls="' + menuId + '" aria-expanded="' + String(Boolean(row.structureMenuOpen)) + '">' + selectedStructures + '</button>' +
+            '<button type="button" class="rgps-scope-structure-toggle" data-scope-structure-toggle aria-controls="' + menuId + '" aria-expanded="' + String(Boolean(row.structureMenuOpen)) + '"><span class="rgps-scope-structure-toggle-label">' + selectedStructures + '</span></button>' +
             '<div id="' + menuId + '" class="rgps-scope-structure-menu"' + menuHidden + '>' + structureInputs + '</div>' +
           '</div></div>' +
           (validationMessage ? '<p class="rgps-scope-error">' + validationMessage + '</p>' : '') +

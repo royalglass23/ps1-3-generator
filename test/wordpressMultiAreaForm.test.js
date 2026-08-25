@@ -73,6 +73,19 @@ test('uses an accessible structure-type multi-select dropdown and carries the co
   assert.match(pluginSource, /function rgps_is_valid_structure/);
 });
 
+test('keeps the collapsed structure-type trigger to one compact line', () => {
+  assert.match(appSource, /class="rgps-scope-structure-toggle-label">' \+ selectedStructures \+ '<\/span>/);
+  assert.match(
+    styleSource,
+    /\.rgps-scope-structure-toggle-label\s*\{[^}]*min-width:\s*0;[^}]*overflow:\s*hidden;[^}]*text-overflow:\s*ellipsis;[^}]*white-space:\s*nowrap;/s
+  );
+});
+
+test('cache-busts the updated structure trigger assets', () => {
+  assert.match(pluginSource, /'rgps-app',\s+RGPS_URL \. 'assets\/app\.js',\s+\[ 'pdf-lib', 'pdf-fontkit' \],\s+'1\.0\.12'/);
+  assert.match(pluginSource, /'rgps-style',\s+RGPS_URL \. 'assets\/style\.css',\s+\[\],\s+'1\.0\.2'/);
+});
+
 test('validates a complete five-area document and rejects incomplete or mixed Pool rows', () => {
   const { buildScopeSummary } = loadScopeHelpers();
   const fiveAreas = [
