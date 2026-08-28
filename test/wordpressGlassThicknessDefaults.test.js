@@ -122,6 +122,20 @@ test('Unex Metropolis defaults to Toughened 12mm glass', () => {
   assert.equal(thickness.value, '12');
 });
 
+test('Juralco Canopy defaults a blank area to Entrance Facade without overwriting user selections', () => {
+  const { getElement, testApi } = loadApp();
+  const system = getElement('rgps-system');
+  system.value = 'juralco-canopy';
+  system.listeners.change.call(system);
+
+  const canopyScope = JSON.parse(JSON.stringify(testApi.getCurrentScope()));
+  assert.deepEqual(canopyScope.rows, [{ location: '', structures: ['Entrance Facade'] }]);
+
+  system.value = 'mini-post';
+  system.listeners.change.call(system);
+  assert.deepEqual(JSON.parse(JSON.stringify(testApi.getCurrentScope())).rows, [{ location: '', structures: ['Entrance Facade'] }]);
+});
+
 test('Aluminium descriptions distinguish pool fencing from balustrades', () => {
   const { testApi } = loadApp();
   assert.equal(

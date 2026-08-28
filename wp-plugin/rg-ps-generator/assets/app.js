@@ -133,6 +133,15 @@
         default: { height: '1.00', heightAboveFix: '1.00' },
       },
     },
+    'juralco-canopy': {
+      displayName:            'Juralco Canopy',
+      templateFile:           'Juralco_Edge_Canopy.pdf',
+      defaultScopeStructures: ['Entrance Facade'],
+      // The supplied canopy cover sheet leaves both height fields blank.
+      heights: {
+        default: { height: '', heightAboveFix: '' },
+      },
+    },
   };
 
   const POOL_STRUCTURES = ['Pool', 'Pool Area', 'Pool Fence'];
@@ -144,6 +153,7 @@
     { value: 'Stair', label: 'Stair' },
     { value: 'Landing', label: 'Landing' },
     { value: 'Juliet Window', label: 'Juliet Window' },
+    { value: 'Entrance Facade', label: 'Entrance Facade' },
     { value: 'Pool', label: 'Pool Area' },
   ];
   let scopeRows = [createEmptyScopeRow()];
@@ -163,6 +173,15 @@
     const s      = getSystem(systemKey);
     const bucket = POOL_STRUCTURES.includes(structure) ? 'pool' : 'default';
     return s.heights[bucket];
+  }
+
+  function applySystemScopeDefault(systemKey) {
+    const defaultStructures = getSystem(systemKey).defaultScopeStructures || [];
+    const scopeIsBlank = scopeRows.length === 1 && !scopeRows[0].location && !scopeRows[0].structures.length;
+    if (!scopeIsBlank || !defaultStructures.length) return;
+
+    scopeRows = [{ location: '', structures: [...defaultStructures], structureMenuOpen: false }];
+    renderScopeRows();
   }
 
   function getScopeState(rows) {
@@ -219,6 +238,7 @@
   if (window.RGPS_TEST_API) {
     window.RGPS_TEST_API.buildDescription = buildDescription;
     window.RGPS_TEST_API.buildScopeSummary = buildScopeSummary;
+    window.RGPS_TEST_API.getCurrentScope = () => getScopeState(scopeRows);
     window.RGPS_TEST_API.fillPS1 = fillPS1;
     window.RGPS_TEST_API.fillPS3 = fillPS3;
   }
@@ -966,6 +986,7 @@
       const glassVal = NON_GLASS_SYSTEMS.includes(this.value) ? 'None' : 'Toughened';
       el('rgps-glassType').value = glassVal;
       applyGlassThicknessDefault(glassVal);
+      applySystemScopeDefault(this.value);
     });
 
     // Pagination controls

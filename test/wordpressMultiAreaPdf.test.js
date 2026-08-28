@@ -146,6 +146,30 @@ test('fills the actual PS1 and PS3 templates for a combined-area document', asyn
   assert.ok(poolPs1.length > 0);
 });
 
+test('fills the Juralco Canopy template while keeping its blank default heights blank', async () => {
+  const { fillPS1 } = loadPdfFillers();
+  const appSource = fs.readFileSync(APP_PATH, 'utf8');
+  assert.match(
+    appSource,
+    /'juralco-canopy':[\s\S]*?default:\s*\{ height: '', heightAboveFix: '' \}/
+  );
+  const data = {
+    clientName: 'Mātai ū',
+    address: '12 Tāmaki Drive',
+    lotDescription: '',
+    combinedAreaList: 'External Entrance Facade Area',
+    substrate: 'Timber',
+    location: 'External',
+    newOrExisting: 'New',
+    thickness: '12',
+    glassType: 'Toughened',
+    longDescription: '12mm Toughened Glass installation for New External Entrance Facade Area using Juralco Canopy System',
+  };
+
+  const bytes = await fillPS1('Juralco_Edge_Canopy.pdf', data, { height: '', heightAboveFix: '' });
+  assert.ok(bytes.length > 0);
+});
+
 test('maps combined areas and aggregate locations into the required PDF fields', async () => {
   const { fillers, textFields, checkFields } = loadRecordingPdfFillers();
   const data = {
