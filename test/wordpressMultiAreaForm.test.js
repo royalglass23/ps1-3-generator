@@ -76,10 +76,20 @@ test('uses an accessible structure-type multi-select dropdown and carries the co
 test('offers and accepts Juliet Window as a structure type', () => {
   const { buildScopeSummary } = loadScopeHelpers();
   assert.match(appSource, /\{ value: 'Juliet Window', label: 'Juliet Window' \}/);
-  assert.match(pluginSource, /\$allowed_structures = \[ 'Deck', 'Balcony', 'Juliet Window', 'Stair', 'Landing', 'Pool' \]/);
+  assert.match(pluginSource, /\$allowed_structures = \[ 'Deck', 'Balcony', 'Juliet Window', 'Entrance Facade', 'Stair', 'Landing', 'Pool' \]/);
   assert.equal(
     buildScopeSummary([{ location: 'External', structures: ['Juliet Window'] }]).combinedAreaList,
     'External Juliet Window Area'
+  );
+});
+
+test('offers and accepts Entrance Facade as a structure type', () => {
+  const { buildScopeSummary } = loadScopeHelpers();
+  assert.match(appSource, /\{ value: 'Entrance Facade', label: 'Entrance Facade' \}/);
+  assert.match(pluginSource, /\$allowed_structures = \[ 'Deck', 'Balcony', 'Juliet Window', 'Entrance Facade', 'Stair', 'Landing', 'Pool' \]/);
+  assert.equal(
+    buildScopeSummary([{ location: 'External', structures: ['Entrance Facade'] }]).combinedAreaList,
+    'External Entrance Facade Area'
   );
 });
 
@@ -115,7 +125,7 @@ test('shares scope-row resolution across structure menu actions', () => {
 });
 
 test('cache-busts the updated structure trigger assets', () => {
-  assert.match(pluginSource, /'rgps-app',\s+RGPS_URL \. 'assets\/app\.js',\s+\[ 'pdf-lib', 'pdf-fontkit' \],\s+'1\.0\.15'/);
+  assert.match(pluginSource, /'rgps-app',\s+RGPS_URL \. 'assets\/app\.js',\s+\[ 'pdf-lib', 'pdf-fontkit' \],\s+'1\.0\.16'/);
   assert.match(pluginSource, /'rgps-style',\s+RGPS_URL \. 'assets\/style\.css',\s+\[\],\s+'1\.0\.4'/);
 });
 
