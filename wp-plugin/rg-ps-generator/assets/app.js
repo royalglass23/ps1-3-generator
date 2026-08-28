@@ -137,9 +137,8 @@
       displayName:            'Juralco Canopy',
       templateFile:           'Juralco_Edge_Canopy.pdf',
       defaultScopeStructures: ['Entrance Facade'],
-      // The supplied canopy cover sheet leaves both height fields blank.
       heights: {
-        default: { height: '', heightAboveFix: '' },
+        default: { height: '1.015', heightAboveFix: '0.85' },
       },
     },
   };
