@@ -146,12 +146,12 @@ test('fills the actual PS1 and PS3 templates for a combined-area document', asyn
   assert.ok(poolPs1.length > 0);
 });
 
-test('fills the Juralco Canopy template while keeping its blank default heights blank', async () => {
+test('fills the Juralco Canopy template with its specified height defaults', async () => {
   const { fillPS1 } = loadPdfFillers();
   const appSource = fs.readFileSync(APP_PATH, 'utf8');
   assert.match(
     appSource,
-    /'juralco-canopy':[\s\S]*?default:\s*\{ height: '', heightAboveFix: '' \}/
+    /'juralco-canopy':[\s\S]*?default:\s*\{ height: '1\.015', heightAboveFix: '0\.85' \}/
   );
   const data = {
     clientName: 'Mātai ū',
@@ -166,7 +166,7 @@ test('fills the Juralco Canopy template while keeping its blank default heights 
     longDescription: '12mm Toughened Glass installation for New External Entrance Facade Area using Juralco Canopy System',
   };
 
-  const bytes = await fillPS1('Juralco_Edge_Canopy.pdf', data, { height: '', heightAboveFix: '' });
+  const bytes = await fillPS1('Juralco_Edge_Canopy.pdf', data, { height: '1.015', heightAboveFix: '0.85' });
   assert.ok(bytes.length > 0);
 });
 
